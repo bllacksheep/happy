@@ -1,0 +1,2 @@
+queries: 
+  - "select count (*) from pg_database" 

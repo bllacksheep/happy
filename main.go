@@ -8,12 +8,14 @@ import (
 	"os"
 )
 
+/*
 var f = `
 queries: 
   - "select count (*) from pg_database" 
 `
+*/
 
-type Config struct {
+type Happy struct {
 	Queries []string `yaml:"queries"`
 }
 
@@ -24,16 +26,20 @@ type Resp struct {
 
 func main() {
 
-	config := Config{}
+	happy := Happy{}
 	resp := Resp{}
 
-	config_path := "config.yaml"
+	config_path := "happy.yaml"
 	
-
-
-	err := yaml.Unmarshal([]byte(f), &config)
+	config, err := os.ReadFile(config_path)
+	
 	if err != nil {
-		os.Exit(2)
+		os.Exit(1)
+	}
+
+	err = yaml.Unmarshal(config, &happy)
+	if err != nil {
+		os.Exit(1)
 	}
 
 
@@ -43,9 +49,7 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	fmt.Println(config)
-	for _, query := range config.Queries {
-		fmt.Println(query)
+	for _, query := range happy.Queries {
 		err = conn.QueryRow(context.Background(), query).Scan(&resp.count)
 	}
 
