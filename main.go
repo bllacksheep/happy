@@ -10,8 +10,14 @@ import (
 
 /*
 var f = `
-queries: 
-  - "select count (*) from pg_database" 
+happy:
+  query: 
+    - name: postgres_version
+      statement: "select version()"
+      return: "string"
+    - name: database_count
+      statement: "select count (*) from pg_database" 
+      return: "int"
 `
 */
 
@@ -41,7 +47,6 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
-
 
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
