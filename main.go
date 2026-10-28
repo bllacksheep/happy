@@ -25,12 +25,12 @@ happy:
 
 type Config struct {
 	Happy struct {
-		Db struct {
+		Cluster struct {
 			Name     string `yaml:"name"`
 			Backups  string `yaml:"backups"`
 			Uri      string `yaml:"uri"`
 			Strategy string `yaml:"strategy"`
-		} `yaml:"db"`
+		} `yaml:"cluster"`
 		HealthChecks []struct {
 			Name      string `yaml:"name"`
 			Statement string `yaml:"statement"`
@@ -79,7 +79,7 @@ func main() {
 
 	db_connection_string := os.Getenv("DB_CONNECTION_STRING")
 	if db_connection_string == "" {
-		db_connection_string = config.Happy.Db.Uri
+		db_connection_string = config.Happy.Cluster.Uri
 	}
 
 	conn, err := pgx.Connect(context.Background(), db_connection_string)

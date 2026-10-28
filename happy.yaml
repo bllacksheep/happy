@@ -1,5 +1,5 @@
 happy:
-  db:
+  cluster:
     name: "cluster-0001"
     uri: "postgres://postgres:test_pass@localhost:5432" 
     backups: "s3://cloudnative-pg-bakups-010skdkv11/backups"
