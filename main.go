@@ -25,11 +25,13 @@ happy:
 
 type Config struct {
 	Happy struct {
-		Query []struct {
+		Db    string `yaml:"db"`
+		Aws   string `yaml:"aws"`
+		HealthChecks []struct {
 			Name      string `yaml:"name"`
 			Statement string `yaml:"statement"`
 			Return    string `yaml:"return"`
-		} `yaml:"query"`
+		} `yaml:"healthchecks"`
 	} `yaml:"happy"`
 }
 
@@ -56,12 +58,12 @@ func validate() Config {
 		os.Exit(1)
 	}
 
-	for _, query := range config.Happy.Query {
-		switch query.Return {
+	for _, hc := range config.Happy.HealthChecks {
+		switch hc.Return {
 		case "int", "string", "bool":
 			slog.Info("config valid")
 		default:
-			slog.Error("invalid type", query.Return, "for query", query.Name)
+			slog.Error("invalid type", hc.Return, "for query", hc.Name)
 		}
 	}
 	return config
@@ -69,7 +71,7 @@ func validate() Config {
 
 func main() {
 	config := validate()
-	happy := make([]Happy, len(config.Happy.Query))
+	happy := make([]Happy, len(config.Happy.HealthChecks))
 
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
@@ -78,12 +80,12 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	for i := 0; i < len(config.Happy.Query); i++ {
-		query := config.Happy.Query[i]
-		happy[i].Name = query.Name
-		err = conn.QueryRow(context.Background(), query.Statement).Scan(&happy[i].Result)
+	for i := 0; i < len(config.Happy.HealthChecks); i++ {
+		hc := config.Happy.HealthChecks[i]
+		happy[i].Name = hc.Name
+		err = conn.QueryRow(context.Background(), hc.Statement).Scan(&happy[i].Result)
 		if err != nil {
-			slog.Error("error performing query", query.Statement, err)
+			slog.Error("error performing query", hc.Statement, err)
 		}
 	}
 

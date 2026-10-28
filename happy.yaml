@@ -1,5 +1,7 @@
 happy:
-  query:
+  db: "postgres://postgres:test_pass@localhost:5432" 
+  aws: "s3://cloudnative-pg-bakups-010skdkv11"
+  healthchecks:
   - name: postgres_version
     statement: "select version()"
     return: "string"
