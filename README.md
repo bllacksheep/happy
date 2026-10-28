@@ -15,8 +15,11 @@ basic health checks
 ```yaml
 # config
 happy:
-  db: "postgres://postgres:test_pass@localhost:5432"
-  aws: "s3://cloudnative-pg-bakups-010skdkv11"
+  db:
+    name: "cluster-0001"
+    uri: "postgres://postgres:test_pass@localhost:5432"
+    backups: "s3://cloudnative-pg-bakups-010skdkv11/backups"
+    stragegy: "checkpoint"
   healthchecks:
   - name: postgres_version
     statement: "select version()"
