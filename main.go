@@ -73,7 +73,12 @@ func main() {
 	config := validate()
 	happy := make([]Happy, len(config.Happy.HealthChecks))
 
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	db_connection_string := os.Getenv("DB_CONNECTION_STRING")
+	if db_connection_string == "" {
+		db_connection_string = config.Happy.Db
+	}
+
+	conn, err := pgx.Connect(context.Background(), db_connection_string)
 	if err != nil {
 		slog.Error("error connecting to db", err)
 		os.Exit(1)
