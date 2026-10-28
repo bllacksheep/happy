@@ -95,4 +95,5 @@ func main() {
 
 	fmt.Println(string(jsonData))
 	slog.Info("health", "results", jsonData)
+	watch()
 }
