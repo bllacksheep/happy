@@ -77,7 +77,7 @@ func main() {
 	config := validate()
 	happy := make([]Happy, len(config.Happy.HealthChecks))
 
-	db_connection_string := os.Getenv("DB_CONNECTION_STRING")
+	db_connection_string := os.Getenv("DB_CONNECTION_URI")
 	if db_connection_string == "" {
 		db_connection_string = config.Happy.Cluster.Uri
 	}
