@@ -2,6 +2,8 @@
 
 cnpg integrated backup-restore validation 
 
+spin up a quick cnpg cluster on k3s https://github.com/bllacksheep/cloudnativepg
+
 temp instructions for dev
 
 ```bash
