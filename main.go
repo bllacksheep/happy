@@ -2,24 +2,26 @@ package main
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
 	"encoding/json"
+	"fmt"
+	"github.com/jackc/pgx/v5"
 	"gopkg.in/yaml.v3"
 	"log/slog"
-	"fmt"
 	"os"
 )
 
+/*
 var f = `
 happy:
-  query: 
+  query:
   - name: postgres_version
     statement: "select version()"
     return: "string"
   - name: database_count
-    statement: "select count (*) from pg_database" 
+    statement: "select count (*) from pg_database"
     return: "int"
 `
+*/
 
 type Config struct {
 	Happy struct {
@@ -32,24 +34,23 @@ type Config struct {
 }
 
 type Happy struct {
-	Name string `json:"name"`
-	Result any `json:"result"`
+	Name   string `json:"name"`
+	Result any    `json:"result"`
 }
 
 func validate() Config {
 	config := Config{}
-	/*
-		config_path := "happy.yaml"
+	configPath := "happy.yaml"
 
-		config_data, err := os.ReadFile(config_path)
+	//configData := []byte(f)
+	configData, err := os.ReadFile(configPath)
 
-		if err != nil {
-			os.Exit(1)
-		}
-	*/
-	configData := []byte(f)
+	if err != nil {
+		slog.Error("couldn't read file", configPath, err)
+		os.Exit(1)
+	}
 
-	err := yaml.Unmarshal(configData, &config)
+	err = yaml.Unmarshal(configData, &config)
 	if err != nil {
 		slog.Error("error unmarshalling yaml", err)
 		os.Exit(1)
@@ -77,7 +78,7 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	for i := 0 ; i < len(config.Happy.Query); i++ {
+	for i := 0; i < len(config.Happy.Query); i++ {
 		query := config.Happy.Query[i]
 		happy[i].Name = query.Name
 		err = conn.QueryRow(context.Background(), query.Statement).Scan(&happy[i].Result)
@@ -91,7 +92,7 @@ func main() {
 		slog.Error("error marshing json", "error", err)
 		os.Exit(1)
 	}
-	
+
 	fmt.Println(string(jsonData))
 	slog.Info("health", "results", jsonData)
 }

@@ -1,2 +1,8 @@
-queries: 
-  - "select count (*) from pg_database" 
+happy:
+  query:
+  - name: postgres_version
+    statement: "select version()"
+    return: "string"
+  - name: database_count
+    statement: "select count (*) from pg_database"
+    return: "int"
