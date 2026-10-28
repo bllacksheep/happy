@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"github.com/jackc/pgx/v5"
+	"encoding/json"
 	"gopkg.in/yaml.v3"
 	"log/slog"
+	"fmt"
 	"os"
 )
 
@@ -30,9 +32,8 @@ type Config struct {
 }
 
 type Happy struct {
-	version string
-	count   int
-	str     string
+	Name string `json:"name"`
+	Result any `json:"result"`
 }
 
 func validate() Config {
@@ -46,9 +47,9 @@ func validate() Config {
 			os.Exit(1)
 		}
 	*/
-	config_data := []byte(f)
+	configData := []byte(f)
 
-	err := yaml.Unmarshal(config_data, &config)
+	err := yaml.Unmarshal(configData, &config)
 	if err != nil {
 		slog.Error("error unmarshalling yaml", err)
 		os.Exit(1)
@@ -67,7 +68,7 @@ func validate() Config {
 
 func main() {
 	config := validate()
-	happy := Happy{}
+	happy := make([]Happy, len(config.Happy.Query))
 
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
@@ -76,23 +77,21 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	for _, query := range config.Happy.Query {
-		switch query.Return {
-		case "string":
-			err = conn.QueryRow(context.Background(), query.Statement).Scan(&happy.version)
-			if err != nil {
-				slog.Error("error performing query", query.Statement, err)
-			}
-		case "int":
-			err = conn.QueryRow(context.Background(), query.Statement).Scan(&happy.count)
-			if err != nil {
-				slog.Error("error performing query", query.Statement, err)
-			}
-		default:
-			slog.Error("unrecoverable error")
-			os.Exit(1)
+	for i := 0 ; i < len(config.Happy.Query); i++ {
+		query := config.Happy.Query[i]
+		happy[i].Name = query.Name
+		err = conn.QueryRow(context.Background(), query.Statement).Scan(&happy[i].Result)
+		if err != nil {
+			slog.Error("error performing query", query.Statement, err)
 		}
 	}
 
-	slog.Info("result", "dbs", happy.count)
+	jsonData, err := json.MarshalIndent(happy, "", " ")
+	if err != nil {
+		slog.Error("error marshing json", "error", err)
+		os.Exit(1)
+	}
+	
+	fmt.Println(string(jsonData))
+	slog.Info("health", "results", jsonData)
 }
