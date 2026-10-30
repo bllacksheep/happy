@@ -40,24 +40,19 @@ func validate() Config {
 	configData, err := os.ReadFile(configPath)
 
 	if err != nil {
-		slog.Error("couldn't read file", configPath, err)
+		slog.Error("file", "main.go", "couldn't read file", configPath, err)
 		os.Exit(1)
 	}
 
 	err = yaml.Unmarshal(configData, &config)
 	if err != nil {
-		slog.Error("error unmarshalling yaml", err)
+		slog.Error("file", "main.go", "error unmarshalling yaml", configPath, err)
 		os.Exit(1)
 	}
 
-	for _, hc := range config.Happy.HealthChecks.CustomChecks {
-		switch hc.Return {
-		case "int", "string", "bool":
-			slog.Info("config valid")
-		default:
-			slog.Error("invalid type", hc.Return, "for query", hc.Name)
-		}
-	}
+	// check required feilds here
+
+
 	return config
 }
 
@@ -75,7 +70,7 @@ func main() {
 
 	conn, err := pgx.Connect(context.Background(), db_connection_string)
 	if err != nil {
-		slog.Error("error connecting to db", err)
+		slog.Error("file", "main.go", "error connecting to db", db_connection_string, err)
 		os.Exit(1)
 	}
 	defer conn.Close(context.Background())
@@ -85,17 +80,17 @@ func main() {
 		happy[i].Name = hc.Name
 		err = conn.QueryRow(context.Background(), hc.Statement).Scan(&happy[i].Result)
 		if err != nil {
-			slog.Error("error performing query", hc.Statement, err)
+			slog.Error("file", "main.go", "error performing query", hc.Statement, err)
 		}
 	}
 
 	jsonData, err := json.MarshalIndent(happy, "", " ")
 	if err != nil {
-		slog.Error("error marshing json", "error", err)
+		slog.Error("file", "main.go", "error marshing json", "error", err)
 		os.Exit(1)
 	}
 
 	fmt.Println(string(jsonData))
-	slog.Info("health", "results", jsonData)
+	slog.Info("file", "main.go", "health", "results", jsonData)
 	CheckClusterHealth()
 }
