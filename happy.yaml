@@ -6,9 +6,25 @@ happy:
     backups: "s3://cloudnative-pg-bakups-010skdkv11/backups"
     strategy: "checkpoint"
   healthchecks:
-  - name: postgres_version
-    statement: "select version()"
-    return: "string"
-  - name: database_count
-    statement: "select count (*) from pg_database"
-    return: "int"
+    global:
+      every: 30s
+      rise: 3
+      fall: 3
+    # explicitly on by default, use this to turn off
+    happy_checks:
+      check_cluster_endpoint_health: true
+      check_wal_replication_health: true
+      check_last_backup_health: true
+      check_db_instance_health: true
+      check_rpo_health: true
+    custom_checks:
+      - name: postgres_version
+        statement: "select version()"
+        every: 10s
+        rise: 3
+        fall: 3
+      - name: database_count
+        statement: "select count (*) from pg_database"
+        every: 10s
+        rise: 3
+        fall: 3
