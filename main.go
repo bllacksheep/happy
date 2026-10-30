@@ -18,10 +18,12 @@ type Config struct {
 			Uri      string `yaml:"uri"`
 			Strategy string `yaml:"strategy"`
 		} `yaml:"cluster"`
-		HealthChecks []struct {
-			Name      string `yaml:"name"`
-			Statement string `yaml:"statement"`
-			Return    string `yaml:"return"`
+		HealthChecks struct {
+			CustomChecks []struct {
+				Name      string `yaml:"name"`
+				Statement string `yaml:"statement"`
+				Return    string `yaml:"return"`
+			} `yaml:"custom_checks"`
 		} `yaml:"healthchecks"`
 	} `yaml:"happy"`
 }
@@ -48,7 +50,7 @@ func validate() Config {
 		os.Exit(1)
 	}
 
-	for _, hc := range config.Happy.HealthChecks {
+	for _, hc := range config.Happy.HealthChecks.CustomChecks {
 		switch hc.Return {
 		case "int", "string", "bool":
 			slog.Info("config valid")
@@ -61,7 +63,10 @@ func validate() Config {
 
 func main() {
 	config := validate()
-	happy := make([]Happy, len(config.Happy.HealthChecks))
+
+	customChecks := config.Happy.HealthChecks.CustomChecks
+	numCustomChecks := len(customChecks)
+	happy := make([]Happy, numCustomChecks) 
 
 	db_connection_string := os.Getenv("DB_CONNECTION_URI")
 	if db_connection_string == "" {
@@ -75,8 +80,8 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	for i := 0; i < len(config.Happy.HealthChecks); i++ {
-		hc := config.Happy.HealthChecks[i]
+	for i := 0; i < numCustomChecks; i++ {
+		hc := customChecks[i]
 		happy[i].Name = hc.Name
 		err = conn.QueryRow(context.Background(), hc.Statement).Scan(&happy[i].Result)
 		if err != nil {
@@ -92,5 +97,5 @@ func main() {
 
 	fmt.Println(string(jsonData))
 	slog.Info("health", "results", jsonData)
-	watch()
+	CheckClusterHealth()
 }

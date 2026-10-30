@@ -1,40 +1,86 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"json"
+	"log/slog"
 	"os"
+	"time"
 )
 
-type ClusterStatus struct {
-	WalReplicationHealthy bool
-	DbInstancesHealthy bool
-	LastBackupHealthy bool
-	RPOHealthy bool
+// mine
+type ClusterHealth struct {
+	WalReplicationHealthy bool `json:"wal_replication_healthy"`
+	DbInstancesHealthy    bool `json:"db_instances_healthy"`
+	LastBackupHealthy     bool `json:"last_backup_healthy"`
+	RPOHealthy            bool `json:"rpo_healthy"`
 
-	Happy bool
+	Happy bool `json:"happy"`
 }
 
-func (ClusterStatus *cs) CheckEndpointHealth() {}
-func (ClusterStatus *cs) CheckWalReplicationHealth() {}
-func (ClusterStatus *cs) CheckDbInstanceHealth() {}
-func (ClusterStatus *cs) CheckLastBackupHealth() {}
-func (ClusterStatus *cs) CheckRPOHealth() {}
-func (ClusterStatus *cs) CheckAreWeHappy() {}
+// theirs
+type ClusterStatus struct {
+	Conditions []struct {
+		LastTransitionTime time.Time
+		Message            string
+		Reason             string
+		Status             string
+		Type               string
+	}
+}
 
+func CheckWalReplicationHealth() {
+	fmt.Println("checking wal replication health")
+}
+
+func (cs *ClusterStatus) CheckEndpointHealth()   {}
+func (cs *ClusterStatus) CheckDbInstanceHealth() {}
+func (cs *ClusterStatus) CheckLastBackupHealth() {}
+func (cs *ClusterStatus) CheckRPOHealth()        {}
+func (cs *ClusterStatus) CheckAreWeHappy()       {}
+
+type HealthChecks []func()
+
+func addChecks() HealthChecks {
+	var hc HealthChecks
+	hc = append(hc, CheckWalReplicationHealth)
+	return hc
+
+}
+
+func initHealthChecks() {
+	healthChecks := addChecks()
+	for _, hc := range healthChecks {
+		go hc()
+	}
+}
 
 func CheckClusterHealth() {
-	cs := &ClusterHealth{}
+	initHealthChecks()
+
+	cs := ClusterStatus{}
+	//ch := ClusterHealth{}
 
 	status, err := os.ReadFile("status.json")
+	if err != nil {
+		slog.Error("file", "cluster.go", "failed to read", "status.json", err)
+		os.Exit(1)
+	}
 
-	cs.CheckEndpointHealth(status)
-	cs.CheckWalReplicationHealth(status)
-	cs.CheckDBInstanaceHealth(status)
-	cs.CheckLastBackupHealth(status)
-	cs.CheckRPOHealth(status)
+	err = json.Unmarshal(status, &cs)
+	if err != nil {
+		slog.Error("file", "cluster.go", "failed to unmarshal status", status, err)
+		os.Exit(1)
+	}
 
-	cs.CheckAreWeHappy()
+	/*
+		cs.CheckEndpointHealth(status)
+		cs.CheckWalReplicationHealth()
+		cs.CheckDBInstanaceHealth(status)
+		cs.CheckLastBackupHealth(status)
+		cs.CheckRPOHealth(status)
 
-	fmt.Println("watching")
+		cs.CheckAreWeHappy()
+	*/
+	fmt.Println(cs)
 }
