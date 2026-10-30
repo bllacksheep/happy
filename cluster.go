@@ -28,12 +28,12 @@ type Condition struct {
 		Type               string
 }
 
-// build up status
+// api response
 type Status struct {
 	Conditions []Condition
 }
 
-// full state swap here
+// state swap
 type Cluster struct {
 	mu sync.RWMutex
 	Status
@@ -94,39 +94,29 @@ func (c *Cluster) getClusterStatus(client kubeApiServerClient, interval time.Dur
 	var cs ClusterStatus
 	if err := json.NewDecoder(resp.Body).Decode(&cs); err == nil {
 			s.mu.Lock()
-			c.Status = cs
+			c.Status = cs // full state swap
 			s.mu.Unlock()
 		}
 	resp.Body.Close()	
 }
 
-func CheckWalReplicationHealth() {
-	resp := getClusterStatus()
 
-	slog.Info("file", "cluster.go", "checking wal replication health")
-
-	cs := ClusterStatus{}
-	err = json.Unmarshal(resp.Body, &cs)
-	if err != nil {
-		slog.Error("file", "cluster.go", "failed to unmarshal status", status, err)
-		os.Exit(1)
-	}
-
-	fmt.Println(cs)
-
+// need interface status fragement
+func (c *Cluster) CheckWalReplicationHealth() StatusFragment {
+	c.mu.RLock()
+	defer s.mu.RUnlock()
+	
+	// return status fragment here?
+	// update healthcheck to be func() StatusFragement?
+	fmt.Println(c.Status.Conditions)
 }
 
-func (cs *ClusterStatus) CheckEndpointHealth()   {
-	// validate certs
-	resp := getClusterStatus()
-}
-
+// treat these more like the view
+func (cs *ClusterStatus) CheckEndpointHealth()   {}
 func (cs *ClusterStatus) CheckDbInstanceHealth() {}
 func (cs *ClusterStatus) CheckLastBackupHealth() {}
 func (cs *ClusterStatus) CheckRPOHealth()        {}
 func (cs *ClusterStatus) CheckAreWeHappy()       {}
-
-
 
 func getBuiltinChecks() HealthChecks {
 	var hc HealthChecks
@@ -134,36 +124,21 @@ func getBuiltinChecks() HealthChecks {
 	return hc
 }
 
-func Poll(threadID int, hc HealthCheck) {
-	for {
-		msg := hc()
-		/*
-		Progress(threadID, msg)
-		if msg.Status == "complete" {
-			Progress(threadID, msg)
-			return
-		}
-		*/
-
-	}
-}
-
 func initHealthChecks() {
 	builtinHealthChecks := getBuiltinChecks()
-
-	//ui.Clear()
 	
 	for id, hc := range builtinHealthChecks {
 		go func(tid int, check HealthCheck) {
-			Poll(tid, check)
+			// not right anymore
+			// what now
 			wg.Done()
 		}(id, hc)
 	}
 
-	//defer Return()
 }
 
 func CheckClusterHealth() {
+	// really health check 'views'
 	initHealthChecks()
 
 	cs := ClusterStatus{}
@@ -181,14 +156,3 @@ func CheckClusterHealth() {
 		os.Exit(1)
 	}
 
-	/*
-		cs.CheckEndpointHealth(status)
-		cs.CheckWalReplicationHealth()
-		cs.CheckDBInstanaceHealth(status)
-		cs.CheckLastBackupHealth(status)
-		cs.CheckRPOHealth(status)
-
-		cs.CheckAreWeHappy()
-	*/
-	fmt.Println(cs)
-}
