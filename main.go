@@ -10,19 +10,6 @@ import (
 	"os"
 )
 
-/*
-var f = `
-happy:
-  query:
-  - name: postgres_version
-    statement: "select version()"
-    return: "string"
-  - name: database_count
-    statement: "select count (*) from pg_database"
-    return: "int"
-`
-*/
-
 type Config struct {
 	Happy struct {
 		Cluster struct {
@@ -48,7 +35,6 @@ func validate() Config {
 	config := Config{}
 	configPath := "happy.yaml"
 
-	//configData := []byte(f)
 	configData, err := os.ReadFile(configPath)
 
 	if err != nil {

@@ -30,3 +30,9 @@ happy:
     statement: "select count (*) from pg_database"
     return: "int"
 ```
+checking cluster status manually from pod
+```
+k exec happy -n happy-system -it -- sh
+curl --cacert $CACERT -H "Authorization: Bearer $TOKEN" https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT/apis/postgresql.cnpg.io/v1/namespaces/db/clusters/cluster-0001
+
+```

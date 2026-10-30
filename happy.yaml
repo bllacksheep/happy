@@ -1,6 +1,7 @@
 happy:
   cluster:
     name: "cluster-0001"
+    namespace: "db"
     uri: "postgres://postgres:test_pass@localhost:5432" 
     backups: "s3://cloudnative-pg-bakups-010skdkv11/backups"
     strategy: "checkpoint"
