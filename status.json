@@ -1,0 +1,130 @@
+{
+  "certificates": {
+    "clientCASecret": "cluster-0001-ca",
+    "expirations": {
+      "cluster-0001-ca": "2027-01-27 09:34:38 +0000 UTC",
+      "cluster-0001-replication": "2027-01-27 09:34:38 +0000 UTC",
+      "cluster-0001-server": "2027-01-27 09:34:38 +0000 UTC"
+    },
+    "replicationTLSSecret": "cluster-0001-replication",
+    "serverAltDNSNames": [
+      "cluster-0001-rw",
+      "cluster-0001-rw.db",
+      "cluster-0001-rw.db.svc",
+      "cluster-0001-r",
+      "cluster-0001-r.db",
+      "cluster-0001-r.db.svc",
+      "cluster-0001-ro",
+      "cluster-0001-ro.db",
+      "cluster-0001-ro.db.svc"
+    ],
+    "serverCASecret": "cluster-0001-ca",
+    "serverTLSSecret": "cluster-0001-server"
+  },
+  "cloudNativePGCommitHash": "c7be872e",
+  "cloudNativePGOperatorHash": "afbe813b4a63d0fd8289baf2423fc20ac1df2568edb10d69248839c03b2611d6",
+  "conditions": [
+    {
+      "lastTransitionTime": "2026-10-29T09:40:46Z",
+      "message": "Cluster is Ready",
+      "reason": "ClusterIsReady",
+      "status": "True",
+      "type": "Ready"
+    },
+    {
+      "lastTransitionTime": "2026-10-29T09:39:52Z",
+      "message": "Continuous archiving is working",
+      "reason": "ContinuousArchivingSuccess",
+      "status": "True",
+      "type": "ContinuousArchiving"
+    },
+    {
+      "lastTransitionTime": "2026-10-29T18:12:06Z",
+      "message": "exit status 1",
+      "reason": "LastBackupFailed",
+      "status": "False",
+      "type": "LastBackupSucceeded"
+    }
+  ],
+  "configMapResourceVersion": {
+    "metrics": {
+      "cnpg-default-monitoring": "23809"
+    }
+  },
+  "currentPrimary": "cluster-0001-1",
+  "currentPrimaryTimestamp": "2026-10-29T09:39:49.836058Z",
+  "firstRecoverabilityPoint": "2026-10-29T17:59:14Z",
+  "firstRecoverabilityPointByMethod": {
+    "barmanObjectStore": "2026-10-29T17:59:14Z"
+  },
+  "healthyPVC": [
+    "cluster-0001-1",
+    "cluster-0001-2",
+    "cluster-0001-3"
+  ],
+  "instanceNames": [
+    "cluster-0001-1",
+    "cluster-0001-2",
+    "cluster-0001-3"
+  ],
+  "instances": 3,
+  "instancesReportedState": {
+    "cluster-0001-1": {
+      "isPrimary": true,
+      "timeLineID": 1
+    },
+    "cluster-0001-2": {
+      "isPrimary": false,
+      "timeLineID": 1
+    },
+    "cluster-0001-3": {
+      "isPrimary": false,
+      "timeLineID": 1
+    }
+  },
+  "instancesStatus": {
+    "healthy": [
+      "cluster-0001-1",
+      "cluster-0001-2",
+      "cluster-0001-3"
+    ]
+  },
+  "lastFailedBackup": "2026-10-29T18:24:43Z",
+  "lastSuccessfulBackup": "2026-10-29T18:16:01Z",
+  "lastSuccessfulBackupByMethod": {
+    "barmanObjectStore": "2026-10-29T18:16:01Z"
+  },
+  "latestGeneratedNode": 3,
+  "managedRolesStatus": {},
+  "phase": "Cluster in healthy state",
+  "poolerIntegrations": {
+    "pgBouncerIntegration": {
+      "secrets": [
+        "cluster-0001-pooler"
+      ]
+    }
+  },
+  "pvcCount": 3,
+  "readService": "cluster-0001-r",
+  "readyInstances": 3,
+  "secretsResourceVersion": {
+    "applicationSecretVersion": "23781",
+    "clientCaSecretVersion": "23778",
+    "replicationSecretVersion": "23780",
+    "serverCaSecretVersion": "23778",
+    "serverSecretVersion": "23779"
+  },
+  "targetPrimary": "cluster-0001-1",
+  "targetPrimaryTimestamp": "2026-10-29T09:39:38.258202Z",
+  "timelineID": 1,
+  "topology": {
+    "instances": {
+      "cluster-0001-1": {},
+      "cluster-0001-2": {},
+      "cluster-0001-3": {}
+    },
+    "nodesUsed": 1,
+    "successfullyExtracted": true
+  },
+  "writeService": "cluster-0001-rw"
+}
