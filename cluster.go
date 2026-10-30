@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"log/slog"
 	"os"
 	"time"
+	"net/http"
 )
 
 // mine
@@ -18,41 +20,147 @@ type ClusterHealth struct {
 	Happy bool `json:"happy"`
 }
 
-// theirs
-type ClusterStatus struct {
-	Conditions []struct {
+type Condition struct {
 		LastTransitionTime time.Time
 		Message            string
 		Reason             string
 		Status             string
 		Type               string
+}
+
+// build up status
+type Status struct {
+	Conditions []Condition
+}
+
+// full state swap here
+type Cluster struct {
+	mu sync.RWMutex
+	Status
+}
+
+type HealthCheck func()
+type HealthChecks []HealthCheck
+
+type kubeApiServerClient struct {
+	Headers map[string]string
+	*http.Client
+}
+
+func getToken() string {
+	return os.Getenv("TOKEN")
+}
+
+func getCACert() string {
+	return os.Getenv("CACERT")
+}
+
+func cnpgClusterStatusUri() string {
+	return os.Getenv("CNPG_CLUSTER_OBJECT_EP")
+}
+
+func newClient() kubeApiServerClient {
+	return kubeApiServerClient{
+		map[string]string{"Authorization: Bearer ": getToken(), "CACERT": getCaCert},
+		&http.Client{
+			Timeout: time.Second * 30,
+		},
 	}
 }
 
-func CheckWalReplicationHealth() {
-	fmt.Println("checking wal replication health")
+func (k kubeApiServerClient) newRequest(url string, method string) *http.Request {
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		slog.Error("file", "cluster.go", "error building new request")
+		os.Exit(1)
+	}
+
+	for k, v := range k.Headers {
+		req.Header.Add(k, v)
+	}
+	return req
 }
 
-func (cs *ClusterStatus) CheckEndpointHealth()   {}
+func (c *Cluster) getClusterStatus(client kubeApiServerClient, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	for range ticker.C {
+		req := client.newRequest(cnpgClusterStatusUri(), http.MethodGet)
+		resp, err: = client.Do(req)
+		if err != nil {
+			slog.Error("file", "cluster.go", "error reachign endpoint")
+			os.Exit(1)
+		}
+	}
+	var cs ClusterStatus
+	if err := json.NewDecoder(resp.Body).Decode(&cs); err == nil {
+			s.mu.Lock()
+			c.Status = cs
+			s.mu.Unlock()
+		}
+	resp.Body.Close()	
+}
+
+func CheckWalReplicationHealth() {
+	resp := getClusterStatus()
+
+	slog.Info("file", "cluster.go", "checking wal replication health")
+
+	cs := ClusterStatus{}
+	err = json.Unmarshal(resp.Body, &cs)
+	if err != nil {
+		slog.Error("file", "cluster.go", "failed to unmarshal status", status, err)
+		os.Exit(1)
+	}
+
+	fmt.Println(cs)
+
+}
+
+func (cs *ClusterStatus) CheckEndpointHealth()   {
+	// validate certs
+	resp := getClusterStatus()
+}
+
 func (cs *ClusterStatus) CheckDbInstanceHealth() {}
 func (cs *ClusterStatus) CheckLastBackupHealth() {}
 func (cs *ClusterStatus) CheckRPOHealth()        {}
 func (cs *ClusterStatus) CheckAreWeHappy()       {}
 
-type HealthChecks []func()
 
-func addChecks() HealthChecks {
+
+func getBuiltinChecks() HealthChecks {
 	var hc HealthChecks
 	hc = append(hc, CheckWalReplicationHealth)
 	return hc
+}
 
+func Poll(threadID int, hc HealthCheck) {
+	for {
+		msg := hc()
+		/*
+		Progress(threadID, msg)
+		if msg.Status == "complete" {
+			Progress(threadID, msg)
+			return
+		}
+		*/
+
+	}
 }
 
 func initHealthChecks() {
-	healthChecks := addChecks()
-	for _, hc := range healthChecks {
-		go hc()
+	builtinHealthChecks := getBuiltinChecks()
+
+	//ui.Clear()
+	
+	for id, hc := range builtinHealthChecks {
+		go func(tid int, check HealthCheck) {
+			Poll(tid, check)
+			wg.Done()
+		}(id, hc)
 	}
+
+	//defer Return()
 }
 
 func CheckClusterHealth() {
