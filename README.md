@@ -60,5 +60,14 @@ checking cluster status manually from pod
 ```
 k exec happy -n happy-system -it -- sh
 curl --cacert $CACERT -H "Authorization: Bearer $TOKEN" https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT/apis/postgresql.cnpg.io/v1/namespaces/db/clusters/cluster-0001
+```
 
 ```
+nerdctl build --tag happy:0.0.x .
+nerdctl image tag happy:0.0.7 maclighiche/happy:0.0.7
+nerdctl push maclighiche/happy:0.0.7
+
+test
+kubectl port-forward svc/pooler-rw 5432:5432 -n db
+```
+
