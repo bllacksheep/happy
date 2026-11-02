@@ -37,20 +37,11 @@ type Cluster struct {
 	ClusterStatus
 }
 
-func getKAPIToken() string {
-	return os.Getenv("KAPI_TOKEN")
-}
-
-func getCACert() string {
-	return os.Getenv("KAPI_CACERT")
-}
-
-func getClusterUri() string {
-	return os.Getenv("KAPI_CNPG_CLUSTER_STATUS_URI")
-}
-
-func getClusterStatus(ns, name, interval time.Duration) {
+func getClusterStatus(ns, name string, interval time.Duration) {
 	//ch := make(chan ClusterStatus)
+
+	tokenData, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+	caCertPath := "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 
 	endpoint_uri := fmt.Sprintf("/apis/postgresql.cnpg.io/v1/namespaces/%s/clusters/%s", ns, name)
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
@@ -61,8 +52,8 @@ func getClusterStatus(ns, name, interval time.Duration) {
 		os.Exit(1)
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", getKAPIToken()))
-	req.Header.Set("CACERT", getCACert())
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenData))
+	req.Header.Set("CACERT", caCertPath)
 
 	ticker := time.NewTicker(interval)
 
