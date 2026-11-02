@@ -100,7 +100,7 @@ spec:
   serviceAccountName: happy-sa
   containers:
     - name: happy
-      image: maclighiche/happy:0.0.8
+      image: maclighiche/happy:0.0.10
       volumeMounts:
         - name: happy-conf
           mountPath: /happy.yaml
