@@ -3,11 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
-	"net/http"
 )
 
 // mine
@@ -26,48 +25,36 @@ type ClusterStatus struct {
 }
 
 type Condition struct {
-		LastTransitionTime time.Time
-		Message            string
-		Reason             string
-		Status             string
-		Type               string
-}
-
-type kubeApiServerClient struct {
-	Headers map[string]string
-	*http.Client
+	LastTransitionTime time.Time
+	Message            string
+	Reason             string
+	Status             string
+	Type               string
 }
 
 // state swap
 type Cluster struct {
-	Status chan ClusterStatus 
+	ClusterStatus
 }
 
-func newClient() kubeApiServerClient {
-	return kubeApiServerClient{
-			map[string]string{"Authorization: Bearer ": getToken(), "CACERT": getCaCert()},
-			&http.Client{
-				Timeout: time.Second * 30,
-			},
-		}
-
-	}
-}
-
-func getKAPIToken() {
+func getKAPIToken() string {
 	return os.Getenv("TOKEN")
 }
 
-func getCACert() {
+func getCACert() string {
 	return os.Getenv("CACERT")
 }
 
-func (k KubeApiServerClient) GetClusterStatus(endpoint string, interval time.Duration) {
-	ch := make(chan ClusterStatus)
+func getClusterUri() string {
+	return os.Getenv("CLUSTER_URI")
+}
+
+func getClusterStatus(endpoint string, interval time.Duration) {
+	//ch := make(chan ClusterStatus)
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
-		slog.Error("file", "status.go", "error building new request")
+		slog.Error("status.go", "msg", "error building new request")
 		os.Exit(1)
 	}
 
@@ -76,84 +63,43 @@ func (k KubeApiServerClient) GetClusterStatus(endpoint string, interval time.Dur
 
 	ticker := time.NewTicker(interval)
 
+	client := &http.Client{
+		Timeout: time.Second * 30,
+	}
+
 	for range ticker.C {
-		resp, err: = client.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
-			slog.Error("file", "cluster.go", "error reachign endpoint")
+			slog.Error("status.go", "msg", "error reaching endpoint")
 			os.Exit(1)
 		}
 		var cs ClusterStatus
 		if err := json.NewDecoder(resp.Body).Decode(&cs); err == nil {
-			s.mu.Lock()
-			c.Status = cs // full state swap
-			s.mu.Unlock()
+			fmt.Println("got: ")
+			fmt.Println(cs)
+			//c.Status = cs // full state swap
 		}
-		resp.Body.Close()	
-		ch <- cs
+		resp.Body.Close()
+		//ch <- cs
 	}
 
 }
 
-// need interface status fragement
-func (c *Cluster) CheckWalReplicationHealth() {
-	c.mu.RLock()
-	defer s.mu.RUnlock()
-	
-	// return status fragment here?
-	// update healthcheck to be func() StatusFragement?
-	fmt.Println(c.Status.Conditions)
-}
-
-/*
-// treat these more like the view
-func (cs *ClusterStatus) CheckEndpointHealth()   {}
-func (cs *ClusterStatus) CheckDbInstanceHealth() {}
-func (cs *ClusterStatus) CheckLastBackupHealth() {}
-func (cs *ClusterStatus) CheckRPOHealth()        {}
-func (cs *ClusterStatus) CheckAreWeHappy()       {}
-*/
-
-/*
-func getBuiltinChecks() HealthChecks {
-	var hc HealthChecks
-	hc = append(hc, CheckWalReplicationHealth)
-	return hc
-}
-
-func initHealthChecks() {
-	builtinHealthChecks := getBuiltinChecks()
-	
-	for id, hc := range builtinHealthChecks {
-		go func(tid int, check HealthCheck) {
-			// not right anymore
-			// what now
-			wg.Done()
-		}(id, hc)
-	}
-
-}
-*/
-
-// whole piece
-// assumes status populated
 func CheckClusterHealth() {
-	//initHealthChecks()
 
-	//cs := ClusterStatus{}
-	//ch := ClusterHealth{}
+	getClusterStatus(getClusterUri(), time.Second*10)
 
-	getClusterStatus(url, time.Second * 10)
+	/*
+		status, err := os.ReadFile("status.json")
+		if err != nil {
+			slog.Error("file", "status.go", "failed to read", "status.json", err)
+			os.Exit(1)
+		}
 
-	status, err := os.ReadFile("status.json")
-	if err != nil {
-		slog.Error("file", "cluster.go", "failed to read", "status.json", err)
-		os.Exit(1)
-	}
-
-	err = json.Unmarshal(status, &cs)
-	if err != nil {
-		slog.Error("file", "cluster.go", "failed to unmarshal status", status, err)
-		os.Exit(1)
-	}
+		err = json.Unmarshal(status, &cs)
+		if err != nil {
+			slog.Error("file", "status.go", "failed to unmarshal status", status, err)
+			os.Exit(1)
+		}
+	*/
 }
-
