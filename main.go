@@ -79,7 +79,7 @@ func validate() Config {
 
 func main() {
 	config := validate()
-	
+
 	CheckClusterHealth()
 
 	customChecks := config.Happy.Clusters[0].Checks

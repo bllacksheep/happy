@@ -1,8 +1,8 @@
 package main
 
 import (
-	"crypto/x509"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -21,17 +21,19 @@ type ClusterHealth struct {
 	Happy bool `json:"happy"`
 }
 
-// api response
-type ClusterStatus struct {
-	Conditions []Condition
+type Condition struct {
+	LastTransitionTime time.Time `json:"lastTransitionTime"`
+	Message            string    `json:"message"`
+	Reason             string    `json:"reason"`
+	Status             string    `json:"status"`
+	Type               string    `json:"type"`
 }
 
-type Condition struct {
-	LastTransitionTime time.Time
-	Message            string
-	Reason             string
-	Status             string
-	Type               string
+// api response
+type ClusterStatus struct {
+	Status struct {
+		Conditions []Condition `json:"conditions"`
+	} `json:"status"`
 }
 
 func getClusterStatus(ns, name string, interval time.Duration) {
@@ -49,10 +51,7 @@ func getClusterStatus(ns, name string, interval time.Duration) {
 		os.Exit(1)
 	}
 	endpoint_uri := fmt.Sprintf("apis/postgresql.cnpg.io/v1/namespaces/%s/clusters/%s", ns, name)
-
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
-
-	slog.Info("status.go", "msg", fmt.Sprintf("got endpoint: %s", endpoint))
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCertData)
@@ -75,10 +74,11 @@ func getClusterStatus(ns, name string, interval time.Duration) {
 
 	client := &http.Client{
 		Transport: transport,
-		Timeout: time.Second * 30,
+		Timeout:   time.Second * 30,
 	}
 
 	for range ticker.C {
+		slog.Info("status.go", "msg", fmt.Sprintf("get endpoint %s", endpoint))
 		resp, err := client.Do(req)
 		if err != nil {
 			slog.Error("status.go", "msg", err)
@@ -86,8 +86,7 @@ func getClusterStatus(ns, name string, interval time.Duration) {
 		}
 		var cs ClusterStatus
 		if err := json.NewDecoder(resp.Body).Decode(&cs); err == nil {
-			fmt.Println("got: ")
-			fmt.Println(cs)
+			slog.Info("status.go", "msg", fmt.Sprintf("status: %s", cs))
 			//c.Status = cs // full state swap
 		}
 		resp.Body.Close()
