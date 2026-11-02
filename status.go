@@ -21,7 +21,7 @@ type ClusterHealth struct {
 }
 
 // api response
-type Status struct {
+type ClusterStatus struct {
 	Conditions []Condition
 }
 
@@ -40,8 +40,7 @@ type kubeApiServerClient struct {
 
 // state swap
 type Cluster struct {
-	mu sync.RWMutex
-	Status
+	Status chan ClusterStatus 
 }
 
 func newClient() kubeApiServerClient {
@@ -55,7 +54,15 @@ func newClient() kubeApiServerClient {
 	}
 }
 
-func getClusterStatus(endpoint string, interval time.Duration) {
+func getKAPIToken() {
+	return os.Getenv("TOKEN")
+}
+
+func getCACert() {
+	return os.Getenv("CACERT")
+}
+
+func (k KubeApiServerClient) GetClusterStatus(endpoint string, interval time.Duration) {
 	ch := make(chan ClusterStatus)
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
@@ -86,7 +93,6 @@ func getClusterStatus(endpoint string, interval time.Duration) {
 	}
 
 }
-
 
 // need interface status fragement
 func (c *Cluster) CheckWalReplicationHealth() {
