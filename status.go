@@ -38,19 +38,22 @@ type Cluster struct {
 }
 
 func getKAPIToken() string {
-	return os.Getenv("TOKEN")
+	return os.Getenv("KAPI_TOKEN")
 }
 
 func getCACert() string {
-	return os.Getenv("CACERT")
+	return os.Getenv("KAPI_CACERT")
 }
 
 func getClusterUri() string {
-	return os.Getenv("CLUSTER_URI")
+	return os.Getenv("KAPI_CNPG_CLUSTER_STATUS_URI")
 }
 
-func getClusterStatus(endpoint string, interval time.Duration) {
+func getClusterStatus(ns, name, interval time.Duration) {
 	//ch := make(chan ClusterStatus)
+
+	endpoint_uri := fmt.Sprintf("/apis/postgresql.cnpg.io/v1/namespaces/%s/clusters/%s", ns, name)
+	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -87,7 +90,7 @@ func getClusterStatus(endpoint string, interval time.Duration) {
 
 func CheckClusterHealth() {
 
-	getClusterStatus(getClusterUri(), time.Second*10)
+	getClusterStatus("db", "cluster-0001", time.Second*10)
 
 	/*
 		status, err := os.ReadFile("status.json")
