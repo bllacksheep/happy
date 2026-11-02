@@ -79,6 +79,8 @@ func validate() Config {
 
 func main() {
 	config := validate()
+	
+	CheckClusterHealth()
 
 	customChecks := config.Happy.Clusters[0].Checks
 	numCustomChecks := len(customChecks)
@@ -114,5 +116,4 @@ func main() {
 
 	fmt.Println(string(jsonData))
 	slog.Info("main.go", "msg", "health", "results", jsonData)
-	CheckClusterHealth()
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/x509"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -32,39 +34,54 @@ type Condition struct {
 	Type               string
 }
 
-// state swap
-type Cluster struct {
-	ClusterStatus
-}
-
 func getClusterStatus(ns, name string, interval time.Duration) {
 	//ch := make(chan ClusterStatus)
 
 	tokenData, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
-	caCertPath := "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	if err != nil {
+		slog.Error("status.go", "msg", err)
+		os.Exit(1)
+	}
 
-	endpoint_uri := fmt.Sprintf("/apis/postgresql.cnpg.io/v1/namespaces/%s/clusters/%s", ns, name)
+	caCertData, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+	if err != nil {
+		slog.Error("status.go", "msg", err)
+		os.Exit(1)
+	}
+	endpoint_uri := fmt.Sprintf("apis/postgresql.cnpg.io/v1/namespaces/%s/clusters/%s", ns, name)
+
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
+
+	slog.Info("status.go", "msg", fmt.Sprintf("got endpoint: %s", endpoint))
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCertData)
+
+	tlsConfig := &tls.Config{
+		RootCAs: caCertPool,
+	}
+
+	transport := &http.Transport{TLSClientConfig: tlsConfig}
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
-		slog.Error("status.go", "msg", "error building new request")
+		slog.Error("status.go", "msg", err)
 		os.Exit(1)
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenData))
-	req.Header.Set("CACERT", caCertPath)
 
 	ticker := time.NewTicker(interval)
 
 	client := &http.Client{
+		Transport: transport,
 		Timeout: time.Second * 30,
 	}
 
 	for range ticker.C {
 		resp, err := client.Do(req)
 		if err != nil {
-			slog.Error("status.go", "msg", "error reaching endpoint")
+			slog.Error("status.go", "msg", err)
 			os.Exit(1)
 		}
 		var cs ClusterStatus
