@@ -14,7 +14,26 @@ telnet localhost 5432
 export DB_CONNECTION_URI="postgres://postgres:test_pass@localhost:5432"
 ```
 basic health checks by cluster
+```
+# minimal example
+happy:
+  clusters:
+    - name: "cluster-0001"
+      namespace: "db"
+      checks:
+        - name: postgres_version
+          statement: "select version()"
+          enabled: false
+        - name: database_count
+          statement: "select count (*) from pg_database"
+          every: "30s"
+          rise: 2
+          fall: 5
+```
+
+
 ```yaml
+# more complete example
 happy:
   default:
     healthchecks:
