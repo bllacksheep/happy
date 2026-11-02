@@ -54,7 +54,7 @@ type Happy struct {
 }
 
 // return valid config
-func validate() Config {
+func validateConfig() Config {
 	happyConfig := Config{}
 
 	configPath := flag.String("c", "happy.yaml", "config file")
@@ -78,9 +78,19 @@ func validate() Config {
 }
 
 func main() {
-	config := validate()
+	config := validateConfig()
 
-	CheckClusterHealth()
+	// will scale for n clusters
+	for cluster := range config.Happy.Clusters {
+		c := Cluster{
+			Name:      cluster.Name,
+			Namespace: cluster.Namespace,
+			// use pooler
+		}
+		go c.StartClusterStatusChecks()
+	}
+
+	// custom checks below this line
 
 	customChecks := config.Happy.Clusters[0].Checks
 	numCustomChecks := len(customChecks)
@@ -116,4 +126,7 @@ func main() {
 
 	fmt.Println(string(jsonData))
 	slog.Info("main.go", "msg", "health", "results", jsonData)
+
+	// block
+	select {}
 }
