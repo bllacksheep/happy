@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"gopkg.in/yaml.v3"
@@ -10,21 +11,40 @@ import (
 	"os"
 )
 
+type ClusterConfig struct {
+	Name         string `yaml:"name"`
+	Namespace    string `yaml:"namespace"`
+	UsePooler    bool   `yaml:"use_pooler"`
+	UsePrimary   bool   `yaml:"use_primary"`
+	UseSecondary bool   `yaml:"use_secondary"`
+	UseInstance  string `yaml:"use_instance"`
+	Checks       []struct {
+		Name      string `yaml:"name"`
+		Statement string `yaml:"statement"`
+		Enabled   bool   `yaml:"enabled"`
+		Every     string `yaml:"every"`
+		Rise      string `yaml:"rise"`
+		Fall      string `yaml:"fall"`
+	} `yaml:"checks"`
+}
+
 type Config struct {
 	Happy struct {
-		Cluster struct {
-			Name     string `yaml:"name"`
-			Backups  string `yaml:"backups"`
-			Uri      string `yaml:"uri"`
-			Strategy string `yaml:"strategy"`
-		} `yaml:"cluster"`
-		HealthChecks struct {
-			CustomChecks []struct {
-				Name      string `yaml:"name"`
-				Statement string `yaml:"statement"`
-				Return    string `yaml:"return"`
-			} `yaml:"custom_checks"`
-		} `yaml:"healthchecks"`
+		Default struct {
+			HealthChecks struct {
+				CheckClusterEndpointHealth bool `yaml:"check_cluster_endpoint_health"`
+				CheckWalReplicationHealth  bool `yaml:"check_wal_replication_health"`
+				CheckLastBackupHealth      bool `yaml:"check_last_backup_health"`
+				CheckDbInstanceHealth      bool `yaml:"check_db_instance_health"`
+				CheckRPOHealth             bool `yaml:"check_rpo_health"`
+			} `yaml:"healthchecks"`
+			Threshold struct {
+				Every string `yaml:"every"`
+				Rise  string `yaml:"rise"`
+				Fall  string `yaml:"fall"`
+			}
+		} `yaml:"default"`
+		Clusters []ClusterConfig `yaml:"clusters"`
 	} `yaml:"happy"`
 }
 
@@ -33,18 +53,20 @@ type Happy struct {
 	Result any    `json:"result"`
 }
 
+// return valid config
 func validate() Config {
-	config := Config{}
-	configPath := "/happy.yaml"
+	happyConfig := Config{}
 
-	configData, err := os.ReadFile(configPath)
+	configPath := flag.String("c", "happy.yaml", "config file")
+	flag.Parse()
+	configData, err := os.ReadFile(*configPath)
 
 	if err != nil {
 		slog.Error("main.go", "msg", "couldn't read file", "err", err)
 		os.Exit(1)
 	}
 
-	err = yaml.Unmarshal(configData, &config)
+	err = yaml.Unmarshal(configData, &happyConfig)
 	if err != nil {
 		slog.Error("main.go", "msg", "error unmarshalling yaml", "err", err)
 		os.Exit(1)
@@ -52,19 +74,20 @@ func validate() Config {
 
 	// check required feilds here
 
-	return config
+	return happyConfig
 }
 
 func main() {
 	config := validate()
 
-	customChecks := config.Happy.HealthChecks.CustomChecks
+	fmt.Println(config)
+	customChecks := config.Happy.Clusters[0].Checks
 	numCustomChecks := len(customChecks)
 	happy := make([]Happy, numCustomChecks)
 
 	db_connection_string := os.Getenv("DB_CONNECTION_URI")
 	if db_connection_string == "" {
-		db_connection_string = config.Happy.Cluster.Uri
+		// needs to come from status probe
 	}
 
 	conn, err := pgx.Connect(context.Background(), db_connection_string)
