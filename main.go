@@ -35,23 +35,22 @@ type Happy struct {
 
 func validate() Config {
 	config := Config{}
-	configPath := "happy.yaml"
+	configPath := "/happy.yaml"
 
 	configData, err := os.ReadFile(configPath)
 
 	if err != nil {
-		slog.Error("file", "main.go", "couldn't read file", configPath, err)
+		slog.Error("main.go", "msg", "couldn't read file", "err", err)
 		os.Exit(1)
 	}
 
 	err = yaml.Unmarshal(configData, &config)
 	if err != nil {
-		slog.Error("file", "main.go", "error unmarshalling yaml", configPath, err)
+		slog.Error("main.go", "msg", "error unmarshalling yaml", "err", err)
 		os.Exit(1)
 	}
 
 	// check required feilds here
-
 
 	return config
 }
@@ -61,7 +60,7 @@ func main() {
 
 	customChecks := config.Happy.HealthChecks.CustomChecks
 	numCustomChecks := len(customChecks)
-	happy := make([]Happy, numCustomChecks) 
+	happy := make([]Happy, numCustomChecks)
 
 	db_connection_string := os.Getenv("DB_CONNECTION_URI")
 	if db_connection_string == "" {
@@ -70,7 +69,7 @@ func main() {
 
 	conn, err := pgx.Connect(context.Background(), db_connection_string)
 	if err != nil {
-		slog.Error("file", "main.go", "error connecting to db", db_connection_string, err)
+		slog.Error("main.go", "msg", "error connecting to db", "err", err)
 		os.Exit(1)
 	}
 	defer conn.Close(context.Background())
@@ -80,17 +79,17 @@ func main() {
 		happy[i].Name = hc.Name
 		err = conn.QueryRow(context.Background(), hc.Statement).Scan(&happy[i].Result)
 		if err != nil {
-			slog.Error("file", "main.go", "error performing query", hc.Statement, err)
+			slog.Error("main.go", "msg", "error performing query", hc.Statement, err)
 		}
 	}
 
 	jsonData, err := json.MarshalIndent(happy, "", " ")
 	if err != nil {
-		slog.Error("file", "main.go", "error marshing json", "error", err)
+		slog.Error("main.go", "msg", "error marshing json", "err", err)
 		os.Exit(1)
 	}
 
 	fmt.Println(string(jsonData))
-	slog.Info("file", "main.go", "health", "results", jsonData)
+	slog.Info("main.go", "msg", "health", "results", jsonData)
 	CheckClusterHealth()
 }
