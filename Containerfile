@@ -10,8 +10,6 @@ RUN go mod download
 
 COPY *.go ./
 
-COPY happy.yaml /happy.yaml
-
 RUN CGO_ENABLED=0 GOOS=linux go build -o /happy
 
 CMD ["/happy"]
