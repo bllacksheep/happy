@@ -63,9 +63,8 @@ curl --cacert $CACERT -H "Authorization: Bearer $TOKEN" https://$KUBERNETES_SERV
 ```
 
 ```
-nerdctl build --tag happy:0.0.x .
-nerdctl image tag happy:0.0.7 maclighiche/happy:0.0.7
-nerdctl push maclighiche/happy:0.0.7
+nerdctl build --tag maclighiche/happy:0.0.x .
+nerdctl push maclighiche/happy:0.0.x
 
 test
 kubectl port-forward svc/pooler-rw 5432:5432 -n db

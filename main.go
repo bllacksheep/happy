@@ -80,7 +80,6 @@ func validate() Config {
 func main() {
 	config := validate()
 
-	fmt.Println(config)
 	customChecks := config.Happy.Clusters[0].Checks
 	numCustomChecks := len(customChecks)
 	happy := make([]Happy, numCustomChecks)
@@ -90,6 +89,7 @@ func main() {
 		// needs to come from status probe
 	}
 
+	fmt.Println(db_connection_string)
 	conn, err := pgx.Connect(context.Background(), db_connection_string)
 	if err != nil {
 		slog.Error("main.go", "msg", "error connecting to db", "err", err)

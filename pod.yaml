@@ -40,10 +40,11 @@ roleRef:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: cluster-0001-creds
+  name: happy-creds
   namespace: happy-system
 type: Opaque
 stringData:
+  DB_CONNECTION_URI: "postgres://app:SV6ATdXGb1G5LSvDfAUQHnZnv5fRNnsop66iPINR8SWFttR0hYPKUmQfH19TKkUK@pooler-rw.db:5432"
   DB_USERNAME: app
   DB_PASSWORD: SV6ATdXGb1G5LSvDfAUQHnZnv5fRNnsop66iPINR8SWFttR0hYPKUmQfH19TKkUK
 ---
@@ -99,11 +100,14 @@ spec:
   serviceAccountName: happy-sa
   containers:
     - name: happy
-      image: maclighiche/happy:0.0.6
+      image: maclighiche/happy:0.0.8
       volumeMounts:
         - name: happy-conf
           mountPath: /happy.yaml
           subPath: happy.yaml
+      envFrom:
+        - secretRef:
+            name: happy-creds
   volumes:
     - name: happy-conf
       configMap:
