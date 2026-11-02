@@ -38,6 +38,16 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-0001-creds
+  namespace: happy-system
+type: Opaque
+stringData:
+  DB_USERNAME: app
+  DB_PASSWORD: SV6ATdXGb1G5LSvDfAUQHnZnv5fRNnsop66iPINR8SWFttR0hYPKUmQfH19TKkUK
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   namespace: happy-system
@@ -45,33 +55,38 @@ metadata:
 data:
   happy.yaml: | 
     happy:
-      cluster:
-        name: "cluster-0001"
-        namespace: "db"
-        uri: "postgres://postgres:test_pass@localhost:5432"
-        backups: "s3://cloudnative-pg-bakups-010skdkv11/backups"
-        strategy: "checkpoint"
-      healthchecks:
-        every: "30s"
-        rise: 3
-        fall: 3
-        defaults:
+      default:
+        healthchecks:
           check_cluster_endpoint_health: true
           check_wal_replication_health: true
           check_last_backup_health: true
           check_db_instance_health: true
           check_rpo_health: true
-        custom_checks:
-          - name: postgres_version
-            statement: "select version()"
-            every: 10s
-            rise: 3
-            fall: 3
-          - name: database_count
-            statement: "select count (*) from pg_database"
-            every: 10s
-            rise: 3
-            fall: 3
+        threshold:
+          every: "10s"
+          rise: 3
+          fall: 3
+      clusters:
+        - name: "cluster-0001"
+          namespace: "db"
+          checks:
+            - name: postgres_version
+              statement: "select version()"
+              enabled: false
+            - name: database_count
+              statement: "select count (*) from pg_database"
+              every: "30s"
+              rise: 2
+              fall: 5
+        - name: "cluster-0002"
+          namespace: "db-1"
+          use_pooler: false
+          checks: []
+        - name: "cluster-0003"
+          namespace: "db-2"
+          use_primary: true
+          use_defaults: false
+          checks: []
 ---
 apiVersion: v1
 kind: Pod
