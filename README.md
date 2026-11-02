@@ -1,10 +1,10 @@
 # happy
 
-cnpg integrated backup-restore validation 
+cnpg integrated backup-restore validation, checks for semantic integraity of data based on your checks
 
 spin up a quick cnpg cluster on k3s https://github.com/bllacksheep/cloudnativepg
 
-temp instructions for dev
+temp instructions for dev (always changing)
 
 ```bash
 # bash
@@ -14,7 +14,7 @@ telnet localhost 5432
 export DB_CONNECTION_URI="postgres://postgres:test_pass@localhost:5432"
 ```
 basic health checks by cluster
-```
+```yaml
 # minimal example
 happy:
   clusters:
@@ -30,8 +30,7 @@ happy:
           rise: 2
           fall: 5
 ```
-
-
+mess with defaults
 ```yaml
 # more complete example
 happy:
