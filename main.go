@@ -1,11 +1,7 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"flag"
-	"fmt"
-	"github.com/jackc/pgx/v5"
 	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
@@ -47,11 +43,6 @@ type Config struct {
 	} `yaml:"happy"`
 }
 
-type Happy struct {
-	Name   string `json:"name"`
-	Result any    `json:"result"`
-}
-
 // return valid config
 func validateConfig() Config {
 	happyConfig := Config{}
@@ -87,8 +78,9 @@ func main() {
 			DefaultChecks:    config.Happy.Default.HealthChecks,
 		}
 		go clusterView.StartClusterStatusChecks()
+		Happy(cluster)
 	}
-
+	/*
 	// custom checks below this line
 
 	customChecks := config.Happy.Clusters[0].Checks
@@ -125,7 +117,7 @@ func main() {
 
 	fmt.Println(string(jsonData))
 	slog.Info("main.go", "msg", "health", "results", jsonData)
-
+	*/
 	// block
 	select {}
 }
