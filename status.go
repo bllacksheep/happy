@@ -73,7 +73,7 @@ func newCnpgClusterRequest(name, ns string) *http.Request {
 	}
 	endpoint_uri := fmt.Sprintf("apis/postgresql.cnpg.io/v1/namespaces/%s/clusters/%s", ns, name)
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
-	log.Info("status.go", "msg", fmt.Sprintf("build endpoint %s", endpoint))
+	slog.Info("status.go", "msg", fmt.Sprintf("build endpoint %s", endpoint))
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -113,7 +113,7 @@ func (c Cluster) StartClusterStatusChecks() {
 
 	//ticker := time.NewTicker(c.interval)
 	ticker := time.NewTicker(10 * time.Second)
-	log.Info("status.go", "msg", fmt.Sprintf("watcher starting for %s", c.Name))
+	slog.Info("status.go", "msg", fmt.Sprintf("watcher starting for %s", c.Name))
 	for range ticker.C {
 		getClusterStatus(client, req, c.ClusterStatus)
 		/*
