@@ -23,7 +23,7 @@ type Cluster struct {
 	DefaultThreshold Threshold
 	DefaultChecks    DefaultHealthChecks
 
-	Status ClusterStatus
+	Status *ClusterStatus
 
 	WalReplicationHealthy bool `json:"wal_replication_healthy"`
 	DbInstancesHealthy    bool `json:"db_instances_healthy"`
@@ -63,7 +63,7 @@ func (c *Cluster) getClusterStatus(client *http.Client, r *http.Request) {
 	}
 
 	resp.Body.Close()
-	c.Status = cs
+	c.Status = &cs
 }
 
 func newCnpgClusterRequest(name, ns string) *http.Request {

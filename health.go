@@ -14,8 +14,18 @@ type Result struct {
 	Result any    `json:"result"`
 }
 
+func (c *Cluster) IsHappy() {
+	// customChecks()
+
+	if c.Status == nil {
+		slog.Info("health.go", "msg", fmt.Sprintf("pending check for %s", c.Name))
+		return
+	}
+	c.WalReplicationHealthy = true
+}
+
 // custom checks in here
-func Happy(cluster ClusterConfig) {
+func customChecks(cluster ClusterConfig) {
 	customChecks := cluster.Checks
 	numCustomChecks := len(customChecks)
 	happy := make([]Result, numCustomChecks)
