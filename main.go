@@ -9,6 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
+	"time"
 )
 
 type ClusterConfig struct {
@@ -19,30 +20,28 @@ type ClusterConfig struct {
 	UseSecondary bool   `yaml:"use_secondary"`
 	UseInstance  string `yaml:"use_instance"`
 	Checks       []struct {
-		Name      string `yaml:"name"`
-		Statement string `yaml:"statement"`
-		Enabled   bool   `yaml:"enabled"`
-		Every     string `yaml:"every"`
-		Rise      string `yaml:"rise"`
-		Fall      string `yaml:"fall"`
+		Name      string    `yaml:"name"`
+		Statement string    `yaml:"statement"`
+		Enabled   bool      `yaml:"enabled"`
+		Every     time.Time `yaml:"every"`
+		Rise      int       `yaml:"rise"`
+		Fall      int       `yaml:"fall"`
 	} `yaml:"checks"`
+}
+
+type DefaultHealthChecks struct {
+	CheckClusterEndpointHealth bool `yaml:"check_cluster_endpoint_health"`
+	CheckWalReplicationHealth  bool `yaml:"check_wal_replication_health"`
+	CheckLastBackupHealth      bool `yaml:"check_last_backup_health"`
+	CheckDbInstanceHealth      bool `yaml:"check_db_instance_health"`
+	CheckRPOHealth             bool `yaml:"check_rpo_health"`
 }
 
 type Config struct {
 	Happy struct {
 		Default struct {
-			HealthChecks struct {
-				CheckClusterEndpointHealth bool `yaml:"check_cluster_endpoint_health"`
-				CheckWalReplicationHealth  bool `yaml:"check_wal_replication_health"`
-				CheckLastBackupHealth      bool `yaml:"check_last_backup_health"`
-				CheckDbInstanceHealth      bool `yaml:"check_db_instance_health"`
-				CheckRPOHealth             bool `yaml:"check_rpo_health"`
-			} `yaml:"healthchecks"`
-			Threshold struct {
-				Every string `yaml:"every"`
-				Rise  string `yaml:"rise"`
-				Fall  string `yaml:"fall"`
-			}
+			HealthChecks DefaultHealthChecks `yaml:"healthchecks"`
+			Threshold    Threshold           `yaml:"threshold"`
 		} `yaml:"default"`
 		Clusters []ClusterConfig `yaml:"clusters"`
 	} `yaml:"happy"`
@@ -81,13 +80,13 @@ func main() {
 	config := validateConfig()
 
 	// will scale for n clusters
-	for cluster := range config.Happy.Clusters {
-		c := Cluster{
-			Name:      cluster.Name,
-			Namespace: cluster.Namespace,
-			// use pooler
+	for _, cluster := range config.Happy.Clusters {
+		clusterView := Cluster{
+			ClusterConfig:    cluster,
+			DefaultThreshold: config.Happy.Default.Threshold,
+			DefaultChecks:    config.Happy.Default.HealthChecks,
 		}
-		go c.StartClusterStatusChecks()
+		go clusterView.StartClusterStatusChecks()
 	}
 
 	// custom checks below this line

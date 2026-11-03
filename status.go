@@ -11,10 +11,19 @@ import (
 	"time"
 )
 
+type Threshold struct {
+	Every time.Time `json:"every" yaml:"every"`
+	Rise  int       `json:"rise" yaml:"rise"`
+	Fall  int       `json:"fall" yaml:"fall"`
+}
+
 // cluster status for n clusters
 type Cluster struct {
-	Name          string
-	ClusterStatus chan ClusterStatus
+	ClusterConfig
+
+	DefaultThreshold Threshold
+	DefaultChecks    DefaultHealthChecks
+	ClusterStatus    chan ClusterStatus
 
 	WalReplicationHealthy bool `json:"wal_replication_healthy"`
 	DbInstancesHealthy    bool `json:"db_instances_healthy"`
@@ -39,10 +48,10 @@ type ClusterStatus struct {
 	} `json:"status"`
 }
 
-func getClusterStatus(client *http.Client, endpoint string, ch chan ClusterStatus) {
-	slog.Info("status.go", "msg", fmt.Sprintf("get endpoint %s", endpoint))
+func getClusterStatus(client *http.Client, r *http.Request, ch chan ClusterStatus) {
+	//slog.Info("status.go", "msg", fmt.Sprintf("get endpoint %s", endpoint))
 
-	resp, err := client.Do(req)
+	resp, err := client.Do(r)
 	if err != nil {
 		slog.Error("status.go", "msg", err)
 		os.Exit(1)
@@ -56,7 +65,7 @@ func getClusterStatus(client *http.Client, endpoint string, ch chan ClusterStatu
 	ch <- cs
 }
 
-func cnpgClusterRequest(ns, name string) *http.Request {
+func newCnpgClusterRequest(ns, name string) *http.Request {
 	tokenData, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	if err != nil {
 		slog.Error("status.go", "msg", err)
@@ -97,11 +106,12 @@ func newTlsClient() *http.Client {
 	}
 }
 
-func (c Cluster) StartCheckClusterStatus() {
+func (c Cluster) StartClusterStatusChecks() {
 	client := newTlsClient()
-	req := cnpgClusterRequest(c.ns, c.name)
+	req := newCnpgClusterRequest(c.Name, c.Namespace)
 
-	ticker := time.NewTicker(c.interval)
+	//ticker := time.NewTicker(c.interval)
+	ticker := time.NewTicker(10 * time.Second)
 	for range ticker.C {
 		getClusterStatus(client, req, c.ClusterStatus)
 		/*
