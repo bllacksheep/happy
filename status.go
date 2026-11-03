@@ -12,9 +12,9 @@ import (
 )
 
 type Threshold struct {
-	Every time.Time `json:"every" yaml:"every"`
-	Rise  int       `json:"rise" yaml:"rise"`
-	Fall  int       `json:"fall" yaml:"fall"`
+	Every time.Duration `json:"every" yaml:"every"`
+	Rise  int           `json:"rise" yaml:"rise"`
+	Fall  int           `json:"fall" yaml:"fall"`
 }
 
 // cluster status for n clusters

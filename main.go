@@ -20,12 +20,12 @@ type ClusterConfig struct {
 	UseSecondary bool   `yaml:"use_secondary"`
 	UseInstance  string `yaml:"use_instance"`
 	Checks       []struct {
-		Name      string    `yaml:"name"`
-		Statement string    `yaml:"statement"`
-		Enabled   bool      `yaml:"enabled"`
-		Every     time.Time `yaml:"every"`
-		Rise      int       `yaml:"rise"`
-		Fall      int       `yaml:"fall"`
+		Name      string        `yaml:"name"`
+		Statement string        `yaml:"statement"`
+		Enabled   bool          `yaml:"enabled"`
+		Every     time.Duration `yaml:"every"`
+		Rise      int           `yaml:"rise"`
+		Fall      int           `yaml:"fall"`
 	} `yaml:"checks"`
 }
 
