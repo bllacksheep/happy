@@ -14,13 +14,32 @@ type Result struct {
 	Result any    `json:"result"`
 }
 
+// quicker loop writing some quick tests for this part
 func (c *Cluster) IsHappy() {
 	// customChecks()
 
 	if c.Status == nil {
-		slog.Info("health.go", "msg", fmt.Sprintf("pending check for %s", c.Name))
+		slog.Info("health.go", "msg", fmt.Sprintf("pending response for %s", c.Name))
 		return
 	}
+
+	status := c.Status.Status
+
+	// conditions first
+	// some weight potentially
+	// can you weight a check so that if it's failing it skews overall health?
+
+	score := 0
+	for _, condition := range status.Conditions {
+		switch condition.Reason {
+		case "ClusterIsReady":
+			score++
+		case "ContinuousArchivingFailing":
+			score--
+		}
+
+	}
+
 	c.WalReplicationHealthy = true
 }
 
