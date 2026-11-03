@@ -69,6 +69,7 @@ func validateConfig() Config {
 
 func main() {
 	config := validateConfig()
+	ch := make(chan Cluster)
 
 	// will scale for n clusters
 	for _, cluster := range config.Happy.Clusters {
@@ -77,47 +78,16 @@ func main() {
 			DefaultThreshold: config.Happy.Default.Threshold,
 			DefaultChecks:    config.Happy.Default.HealthChecks,
 		}
-		go clusterView.StartClusterStatusChecks()
-		Happy(cluster)
-	}
-	/*
-	// custom checks below this line
+		go clusterView.StartClusterStatusChecks(ch)
 
-	customChecks := config.Happy.Clusters[0].Checks
-	numCustomChecks := len(customChecks)
-	happy := make([]Happy, numCustomChecks)
-
-	db_connection_string := os.Getenv("DB_CONNECTION_URI")
-	if db_connection_string == "" {
-		// needs to come from status probe
+		//Happy(cluster)
 	}
 
-	fmt.Println(db_connection_string)
-	conn, err := pgx.Connect(context.Background(), db_connection_string)
-	if err != nil {
-		slog.Error("main.go", "msg", "error connecting to db", "err", err)
-		os.Exit(1)
-	}
-	defer conn.Close(context.Background())
-
-	for i := 0; i < numCustomChecks; i++ {
-		hc := customChecks[i]
-		happy[i].Name = hc.Name
-		err = conn.QueryRow(context.Background(), hc.Statement).Scan(&happy[i].Result)
-		if err != nil {
-			slog.Error("main.go", "msg", "error performing query", hc.Statement, err)
+	for {
+		select {
+		case cluster := <-ch:
+			slog.Info("main.go", "msg", cluster.Status)
 		}
 	}
 
-	jsonData, err := json.MarshalIndent(happy, "", " ")
-	if err != nil {
-		slog.Error("main.go", "msg", "error marshing json", "err", err)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(jsonData))
-	slog.Info("main.go", "msg", "health", "results", jsonData)
-	*/
-	// block
-	select {}
 }

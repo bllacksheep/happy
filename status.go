@@ -20,10 +20,10 @@ type Threshold struct {
 // cluster status for n clusters
 type Cluster struct {
 	ClusterConfig
-
 	DefaultThreshold Threshold
 	DefaultChecks    DefaultHealthChecks
-	ClusterStatus    chan ClusterStatus
+
+	Status ClusterStatus
 
 	WalReplicationHealthy bool `json:"wal_replication_healthy"`
 	DbInstancesHealthy    bool `json:"db_instances_healthy"`
@@ -48,9 +48,7 @@ type ClusterStatus struct {
 	} `json:"status"`
 }
 
-func getClusterStatus(client *http.Client, r *http.Request, ch chan ClusterStatus) {
-	//slog.Info("status.go", "msg", fmt.Sprintf("get endpoint %s", endpoint))
-
+func (c *Cluster) getClusterStatus(client *http.Client, r *http.Request) {
 	resp, err := client.Do(r)
 	if err != nil {
 		slog.Error("status.go", "msg", err)
@@ -58,11 +56,14 @@ func getClusterStatus(client *http.Client, r *http.Request, ch chan ClusterStatu
 	}
 
 	var cs ClusterStatus
-	if err := json.NewDecoder(resp.Body).Decode(&cs); err == nil {
-		slog.Info("status.go", "msg", fmt.Sprintf("current status: %s", cs))
+	err = json.NewDecoder(resp.Body).Decode(&cs)
+	if err != nil {
+		slog.Error("status.go", "msg", err)
+		os.Exit(1)
 	}
+
 	resp.Body.Close()
-	ch <- cs
+	c.Status = cs
 }
 
 func newCnpgClusterRequest(name, ns string) *http.Request {
@@ -107,21 +108,15 @@ func newTlsClient() *http.Client {
 	}
 }
 
-func (c Cluster) StartClusterStatusChecks() {
+func (c Cluster) StartClusterStatusChecks(ch chan Cluster) {
 	client := newTlsClient()
 	req := newCnpgClusterRequest(c.Name, c.Namespace)
 
-	//ticker := time.NewTicker(c.interval)
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(c.DefaultThreshold.Every)
+
 	slog.Info("status.go", "msg", fmt.Sprintf("watcher starting for %s", c.Name))
 	for range ticker.C {
-		getClusterStatus(client, req, c.ClusterStatus)
-		/*
-			data err := json.Marshal(status)
-			if err != nil {
-				slog.Error("file", "status.go", "failed to unmarshal status", status, err)
-				os.Exit(1)
-			}
-		*/
+		c.getClusterStatus(client, req)
+		ch <- c
 	}
 }
