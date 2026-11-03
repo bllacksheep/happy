@@ -67,6 +67,12 @@ func validateConfig() Config {
 	return happyConfig
 }
 
+type HappyView struct {
+	Name      string        `json:"name"`
+	Namespace string        `json:"namespace"`
+	Status    ClusterStatus `json:"cluster_status"`
+}
+
 func main() {
 	config := validateConfig()
 	ch := make(chan Cluster)
@@ -83,10 +89,13 @@ func main() {
 		//Happy(cluster)
 	}
 
+	happy := make(map[string]*Cluster, len(config.Happy.Clusters))
+
 	for {
 		select {
 		case cluster := <-ch:
-			slog.Info("main.go", "msg", cluster.Status)
+			happy[cluster.Name] = &cluster
+			slog.Info("main.go", "msg", happy)
 		}
 	}
 
