@@ -79,15 +79,6 @@ data:
               every: "30s"
               rise: 2
               fall: 5
-        - name: "cluster-0002"
-          namespace: "db-1"
-          use_pooler: false
-          checks: []
-        - name: "cluster-0003"
-          namespace: "db-2"
-          use_primary: true
-          use_defaults: false
-          checks: []
 ---
 apiVersion: v1
 kind: Pod
@@ -100,7 +91,7 @@ spec:
   serviceAccountName: happy-sa
   containers:
     - name: happy
-      image: maclighiche/happy:0.0.13
+      image: maclighiche/happy:0.0.14
       volumeMounts:
         - name: happy-conf
           mountPath: /happy.yaml
