@@ -36,9 +36,9 @@ func (c *Cluster) IsHappy() {
 		"ContinuousArchivingSucceeded": 1,
 	}
 
-	score := 0
+	score := 0.0
 	for _, condition := range status.Conditions {
-		score = weights[condition.Reason]
+		score += weights[condition.Reason]
 	}
 	
 	// test
