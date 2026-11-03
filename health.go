@@ -29,10 +29,18 @@ func (c *Cluster) IsHappy() {
 	// some weight potentially
 	// can you weight a check so that if it's failing it skews overall health?
 
+	/*
+	weights := map[string]float64{
+		"ClusterIsReady":             1,
+		"ContinuousArchivingFailing": 1,
+	}
+	*/
+
 	score := 0
 	for _, condition := range status.Conditions {
 		switch condition.Reason {
 		case "ClusterIsReady":
+			//weights[condition.Reason]
 			score++
 		case "ContinuousArchivingFailing":
 			score--
@@ -73,7 +81,7 @@ func customChecks(cluster ClusterConfig) {
 
 	jsonData, err := json.MarshalIndent(happy, "", " ")
 	if err != nil {
-		slog.Error("health.go", "err",  err)
+		slog.Error("health.go", "err", err)
 		os.Exit(1)
 	}
 
