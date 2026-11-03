@@ -57,7 +57,7 @@ func customChecks(cluster ClusterConfig) {
 	fmt.Println(db_connection_string)
 	conn, err := pgx.Connect(context.Background(), db_connection_string)
 	if err != nil {
-		slog.Error("main.go", "msg", "error connecting to db", "err", err)
+		slog.Error("health.go", "err", err)
 		os.Exit(1)
 	}
 	defer conn.Close(context.Background())
@@ -67,16 +67,16 @@ func customChecks(cluster ClusterConfig) {
 		happy[i].Name = hc.Name
 		err = conn.QueryRow(context.Background(), hc.Statement).Scan(&happy[i].Result)
 		if err != nil {
-			slog.Error("main.go", "msg", "error performing query", hc.Statement, err)
+			slog.Error("health.go", "err", err)
 		}
 	}
 
 	jsonData, err := json.MarshalIndent(happy, "", " ")
 	if err != nil {
-		slog.Error("main.go", "msg", "error marshing json", "err", err)
+		slog.Error("health.go", "err",  err)
 		os.Exit(1)
 	}
 
 	fmt.Println(string(jsonData))
-	slog.Info("main.go", "msg", "health", "results", jsonData)
+	slog.Info("main.go", "msg", jsonData)
 }
