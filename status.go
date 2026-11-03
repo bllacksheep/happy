@@ -29,6 +29,9 @@ type Cluster struct {
 	DbInstancesHealthy    bool `json:"db_instances_healthy"`
 	LastBackupHealthy     bool `json:"last_backup_healthy"`
 	RPOHealthy            bool `json:"rpo_healthy"`
+	
+	// timer that will track recovery time
+	RTO time.Duration `json:"rto"`
 
 	Happy bool `json:"happy"`
 }
