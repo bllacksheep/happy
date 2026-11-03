@@ -14,6 +14,7 @@ type Result struct {
 	Result any    `json:"result"`
 }
 
+// custom checks in here
 func Happy(cluster ClusterConfig) {
 	customChecks := cluster.Checks
 	numCustomChecks := len(customChecks)
