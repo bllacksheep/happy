@@ -29,25 +29,19 @@ func (c *Cluster) IsHappy() {
 	// some weight potentially
 	// can you weight a check so that if it's failing it skews overall health?
 
-	/*
 	weights := map[string]float64{
-		"ClusterIsReady":             1,
-		"ContinuousArchivingFailing": 1,
+		"ClusterIsReady":               1,
+		"ClusterIsNotReady":            1,
+		"ContinuousArchivingFailing":   1,
+		"ContinuousArchivingSucceeded": 1,
 	}
-	*/
 
 	score := 0
 	for _, condition := range status.Conditions {
-		switch condition.Reason {
-		case "ClusterIsReady":
-			//weights[condition.Reason]
-			score++
-		case "ContinuousArchivingFailing":
-			score--
-		}
-
+		score = weights[condition.Reason]
 	}
-
+	
+	// test
 	c.WalReplicationHealthy = true
 }
 
