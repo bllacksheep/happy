@@ -59,13 +59,13 @@ func getClusterStatus(client *http.Client, r *http.Request, ch chan ClusterStatu
 
 	var cs ClusterStatus
 	if err := json.NewDecoder(resp.Body).Decode(&cs); err == nil {
-		slog.Info("status.go", "msg", fmt.Sprintf("status: %s", cs))
+		slog.Info("status.go", "msg", fmt.Sprintf("current status: %s", cs))
 	}
 	resp.Body.Close()
 	ch <- cs
 }
 
-func newCnpgClusterRequest(ns, name string) *http.Request {
+func newCnpgClusterRequest(name, ns string) *http.Request {
 	tokenData, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	if err != nil {
 		slog.Error("status.go", "msg", err)
@@ -73,6 +73,7 @@ func newCnpgClusterRequest(ns, name string) *http.Request {
 	}
 	endpoint_uri := fmt.Sprintf("apis/postgresql.cnpg.io/v1/namespaces/%s/clusters/%s", ns, name)
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
+	log.Info("status.go", "msg", fmt.Sprintf("build endpoint %s", endpoint))
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -112,6 +113,7 @@ func (c Cluster) StartClusterStatusChecks() {
 
 	//ticker := time.NewTicker(c.interval)
 	ticker := time.NewTicker(10 * time.Second)
+	log.Info("status.go", "msg", fmt.Sprintf("watcher starting for %s", c.Name))
 	for range ticker.C {
 		getClusterStatus(client, req, c.ClusterStatus)
 		/*

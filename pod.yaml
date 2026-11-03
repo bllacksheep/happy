@@ -44,9 +44,9 @@ metadata:
   namespace: happy-system
 type: Opaque
 stringData:
-  DB_CONNECTION_URI: "postgres://app:SV6ATdXGb1G5LSvDfAUQHnZnv5fRNnsop66iPINR8SWFttR0hYPKUmQfH19TKkUK@pooler-rw.db:5432"
+  DB_CONNECTION_URI: "postgres://app:KhCxGHMpbbM2Fmd06NTtlpqZYITVB51YaBC3lyBewRNidVp1FAPjAXOzC5LWM0u3@pooler-rw.db:5432"
   DB_USERNAME: app
-  DB_PASSWORD: SV6ATdXGb1G5LSvDfAUQHnZnv5fRNnsop66iPINR8SWFttR0hYPKUmQfH19TKkUK
+  DB_PASSWORD: KhCxGHMpbbM2Fmd06NTtlpqZYITVB51YaBC3lyBewRNidVp1FAPjAXOzC5LWM0u3
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -100,7 +100,7 @@ spec:
   serviceAccountName: happy-sa
   containers:
     - name: happy
-      image: maclighiche/happy:0.0.12
+      image: maclighiche/happy:0.0.13
       volumeMounts:
         - name: happy-conf
           mountPath: /happy.yaml
