@@ -14,6 +14,11 @@ type Result struct {
 	Result any    `json:"result"`
 }
 
+type ClusterState struct {
+	ret  int
+	weight int
+}
+
 // quicker loop writing some quick tests for this part
 func (c *Cluster) IsHappy() {
 	// customChecks()
@@ -23,24 +28,28 @@ func (c *Cluster) IsHappy() {
 		return
 	}
 
-	status := c.Status.Status
+	//status := c.Status.Status
 
 	// conditions first
 	// some weight potentially
 	// can you weight a check so that if it's failing it skews overall health?
 
-	weights := map[string]float64{
-		"ClusterIsReady":               1,
-		"ClusterIsNotReady":            1,
-		"ContinuousArchivingFailing":   1,
-		"ContinuousArchivingSucceeded": 1,
+	states := map[string]ClusterState{
+		"ClusterIsReady":               {3, 1},
+		"ClusterIsNotReady":            {0, 4},
+		"ContinuousArchivingSucceeded": {3, 1},
+		"ContinuousArchivingFailing":   {0, 4},
 	}
 
+	_ = states
+	
+	/*
 	score := 0.0
 	for _, condition := range status.Conditions {
 		score += weights[condition.Reason]
 	}
-	
+	*/
+
 	// test
 	c.WalReplicationHealthy = true
 }
