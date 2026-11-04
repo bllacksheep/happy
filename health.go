@@ -18,13 +18,13 @@ const (
 	Fail    int = 0
 	Success int = 3
 
-	Low  int = 1
-	High int = 4
+	Normal float64 = 1.0
+	High   float64 = 4.0
 )
 
 type ClusterState struct {
 	Status int
-	Weight int
+	Weight float64
 }
 
 // quicker loop writing some quick tests for this part
@@ -44,19 +44,19 @@ func (c *Cluster) IsHappy() {
 
 	// something like... success contributes less, skew if fail
 	clusterStates := map[string]ClusterState{
-		"ClusterIsReady":               {Status: Success, Weight: Low},
+		"ClusterIsReady":               {Status: Success, Weight: Normal},
 		"ClusterIsNotReady":            {Status: Fail, Weight: High},
-		"ContinuousArchivingSucceeded": {Status: Success, Weight: Low},
+		"ContinuousArchivingSucceeded": {Status: Success, Weight: Normal},
 		"ContinuousArchivingFailing":   {Status: Fail, Weight: High},
 	}
 
-	score := 0
-	weight := 0
+	score := 0.0
+	weight := 0.0
 
 	// total score but need individual scores numerator
 	for _, current_condition := range clusterStatus.Conditions {
 		state := clusterStates[current_condition.Reason]
-		score += state.Status * state.Weight
+		score += float64(state.Status) * state.Weight
 		weight += state.Weight
 	}
 
