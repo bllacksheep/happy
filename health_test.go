@@ -8,6 +8,7 @@ import (
 
 func TestIsHappy(t *testing.T) {
 
+	// dummy case for now
 	case1 := []byte(`{
 	  "status": {
 	  "conditions": [
@@ -34,9 +35,11 @@ func TestIsHappy(t *testing.T) {
 	    }
 	  ]
 	}
-}`)
+        }`)
+
+	// named cluster can test when status is nil
 	cluster := Cluster{
-		Name: "test-cluster",
+		Name: "test-case1-cluster",
 	}
 
 	err := json.Unmarshal(case1, &cluster.Status)
@@ -46,6 +49,8 @@ func TestIsHappy(t *testing.T) {
 
 	cluster.IsHappy()
 
-	fmt.Println(cluster.Status)
+	if cluster.Happy == false {
+		t.Errorf("not happy %s", cluster.Status)
+	}
 
 }
