@@ -14,20 +14,17 @@ type Result struct {
 	Result any    `json:"result"`
 }
 
-type Status int
-type Weight int
-
 const (
-	Fail    Status = 0
-	Success Status = 3
+	Fail    int = 0
+	Success int = 3
 
-	Low     Weight = 1
-	High    Weight = 4
+	Low  int = 1
+	High int = 4
 )
 
 type ClusterState struct {
-	Ret    Status
-	Weight Weight
+	Status int
+	Weight int
 }
 
 // quicker loop writing some quick tests for this part
@@ -39,28 +36,32 @@ func (c *Cluster) IsHappy() {
 		return
 	}
 
-	//status := c.Status.Status
+	clusterStatus := c.Status.Status
 
 	// conditions first
 	// some weight potentially
 	// can you weight a check so that if it's failing it skews overall health?
 
 	// something like... success contributes less, skew if fail
-	states := map[string]ClusterState{
-		"ClusterIsReady":               {Ret: Success, Weight: Low},
-		"ClusterIsNotReady":            {Ret: Fail, Weight: High},
-		"ContinuousArchivingSucceeded": {Ret: Success, Weight: Low},
-		"ContinuousArchivingFailing":   {Ret: Fail, Weight: High},
+	clusterStates := map[string]ClusterState{
+		"ClusterIsReady":               {Status: Success, Weight: Low},
+		"ClusterIsNotReady":            {Status: Fail, Weight: High},
+		"ContinuousArchivingSucceeded": {Status: Success, Weight: Low},
+		"ContinuousArchivingFailing":   {Status: Fail, Weight: High},
 	}
 
-	_ = states
+	score := 0
+	weight := 0
 
-	/*
-		score := 0.0
-		for _, condition := range status.Conditions {
-			score += weights[condition.Reason]
-		}
-	*/
+	// total score but need individual scores numerator
+	for _, current_condition := range clusterStatus.Conditions {
+		state := clusterStates[current_condition.Reason]
+		score += state.Status * state.Weight
+		weight += state.Weight
+	}
+
+	totalScore := score / weight
+	fmt.Println(totalScore)
 
 	// test
 	c.WalReplicationHealthy = true
