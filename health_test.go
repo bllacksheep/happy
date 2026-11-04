@@ -15,21 +15,21 @@ func TestIsHappy(t *testing.T) {
 	    {
 	      "lastTransitionTime": "2026-10-29T09:40:46Z",
 	      "message": "Cluster is Ready",
-	      "reason": "ClusterIsReady",
+	      "reason": "ClusterIsNotReady",
 	      "status": "True",
 	      "type": "Ready"
 	    },
 	    {
 	      "lastTransitionTime": "2026-10-29T09:39:52Z",
 	      "message": "Continuous archiving is working",
-	      "reason": "ContinuousArchivingSuccess",
+	      "reason": "ContinuousArchivingSucceeded",
 	      "status": "True",
 	      "type": "ContinuousArchiving"
 	    },
 	    {
 	      "lastTransitionTime": "2026-10-29T18:12:06Z",
 	      "message": "exit status 1",
-	      "reason": "LastBackupFailed",
+	      "reason": "LastBackupSucceeded",
 	      "status": "False",
 	      "type": "LastBackupSucceeded"
 	    }

@@ -63,7 +63,6 @@ func validateConfig() Config {
 	}
 
 	// check required feilds here
-
 	return happyConfig
 }
 
@@ -77,6 +76,7 @@ func main() {
 			ClusterConfig:    cluster,
 			DefaultThreshold: config.Happy.Default.Threshold,
 			DefaultChecks:    config.Happy.Default.HealthChecks,
+
 		}
 		go clusterView.StartClusterStatusChecks(ch)
 	}

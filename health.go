@@ -48,6 +48,8 @@ func (c *Cluster) IsHappy() {
 		"ClusterIsNotReady":            {Status: Fail, Weight: High},
 		"ContinuousArchivingSucceeded": {Status: Success, Weight: Normal},
 		"ContinuousArchivingFailing":   {Status: Fail, Weight: High},
+		"LastBackupSucceeded":          {Status: Success, Weight: Normal},
+		"LastBackupFailed":             {Status: Fail, Weight: High},
 	}
 
 	score := 0.0
@@ -58,13 +60,18 @@ func (c *Cluster) IsHappy() {
 		state := clusterStates[current_condition.Reason]
 		score += float64(state.Status) * state.Weight
 		weight += state.Weight
+		switch current_condition.Reason {
+		case "ContinuousArchivingSucceeded":
+			c.WalReplicationHealthy = true
+		}
 	}
 
 	totalScore := score / weight
 	fmt.Println(totalScore)
 
-	// test
-	c.WalReplicationHealthy = true
+	if totalScore == float64(Success) {
+		c.Happy = true
+	}
 }
 
 // custom checks in here
