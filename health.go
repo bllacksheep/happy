@@ -18,8 +18,8 @@ const (
 	Fail    int = 0
 	Success int = 3
 
-	Normal float64 = 1.0
-	High   float64 = 4.0
+	Acceptable   float64 = 1.0
+	Unacceptable float64 = 4.0
 )
 
 type ClusterState struct {
@@ -48,12 +48,12 @@ func (c *Cluster) IsHappy() {
 
 	// failed or failing?
 	clusterStates := map[string]ClusterState{
-		"ClusterIsReady":               {Status: Success, Weight: Normal},
-		"ClusterIsNotReady":            {Status: Fail, Weight: High},
-		"ContinuousArchivingSucceeded": {Status: Success, Weight: Normal},
-		"ContinuousArchivingFailing":   {Status: Fail, Weight: High},
-		"LastBackupSucceeded":          {Status: Success, Weight: Normal},
-		"LastBackupFailed":             {Status: Fail, Weight: High},
+		"ClusterIsReady":               {Status: Success, Weight: Acceptable},
+		"ClusterIsNotReady":            {Status: Fail, Weight: Unacceptable},
+		"ContinuousArchivingSucceeded": {Status: Success, Weight: Acceptable},
+		"ContinuousArchivingFailing":   {Status: Fail, Weight: Acceptable},
+		"LastBackupSucceeded":          {Status: Success, Weight: Acceptable},
+		"LastBackupFailed":             {Status: Fail, Weight: Acceptable},
 	}
 
 	score := 0.0

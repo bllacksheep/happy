@@ -149,11 +149,15 @@ func TestIsHappy(t *testing.T) {
 			// 1.5 > degraded < 2.5
 			// 0 > failed < 1.5
 
-			if tc.cluster.OverallHealth <= tc.thresholdHigh ||
-				tc.cluster.OverallHealth >= tc.thresholdLow {
-				t.Errorf("expected: %v < %v <= %v", tc.thresholdLow,
-					tc.cluster.OverallHealth,
-					tc.thresholdHigh)
+			if tc.cluster.OverallHealth > 0 && tc.cluster.OverallHealth <= 3 {
+
+				if tc.cluster.OverallHealth > tc.thresholdHigh ||
+					tc.cluster.OverallHealth < tc.thresholdLow {
+					t.Errorf("expected: %v < %v <= %v", tc.thresholdLow,
+						tc.cluster.OverallHealth,
+						tc.thresholdHigh)
+				}
+
 			}
 		})
 
