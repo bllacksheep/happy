@@ -11,20 +11,20 @@ func TestIsHappy(t *testing.T) {
 	type testCase struct {
 		name     string
 		cluster  Cluster
-		expected int
+		expected float64
 	}
 
 	failed := []byte(`{
 	  "status": {
 	  "conditions": [
 	    {
-	      "reason": "ClusterIsNotReady",
+	      "reason": "ClusterIsNotReady"
 	    },
 	    {
-	      "reason": "ContinuousArchivingSucceeded",
+	      "reason": "ContinuousArchivingSucceeded"
 	    },
 	    {
-	      "reason": "LastBackupSucceeded",
+	      "reason": "LastBackupSucceeded"
 	    }
 	  ]
 	}
@@ -34,13 +34,13 @@ func TestIsHappy(t *testing.T) {
 	  "status": {
 	  "conditions": [
 	    {
-	      "reason": "ClusterIsReady",
+	      "reason": "ClusterIsReady"
 	    },
 	    {
-	      "reason": "ContinuousArchivingSucceeded",
+	      "reason": "ContinuousArchivingSucceeded"
 	    },
 	    {
-	      "reason": "LastBackupFailed",
+	      "reason": "LastBackupFailed"
 	    }
 	  ]
 	}
@@ -50,13 +50,13 @@ func TestIsHappy(t *testing.T) {
 	  "status": {
 	  "conditions": [
 	    {
-	      "reason": "ClusterIsReady",
+	      "reason": "ClusterIsReady"
 	    },
 	    {
-	      "reason": "ContinuousArchivingSucceeded",
+	      "reason": "ContinuousArchivingSucceeded"
 	    },
 	    {
-	      "reason": "LastBackupSucceeded",
+	      "reason": "LastBackupSucceeded"
 	    }
 	  ]
 	}
@@ -73,25 +73,29 @@ func TestIsHappy(t *testing.T) {
 	for i := range len(statusResponses) {
 		var cluster Cluster
 
-		cluster.Name = fmt.Sprintf("test-%v", i)
+		cluster.Name = fmt.Sprintf("test-cluster-%v", i)
 
 		err := json.Unmarshal(statusResponses[i], &cluster.Status)
 		if err != nil {
 			t.Errorf("failed unmarshal %s", err)
 		}
 
-		cases = append(cases, testCase{cluster.Name, cluster, i})
+		cases = append(cases, testCase{cluster.Name, cluster, 3.0})
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.cluster.IsHappy()
 
-			if tc.cluster.Happy < 1 {
-				t.Errorf("%s polled x%v, cluster happy x%v", tc.cluster.Name,
-					tc.cluster.Polled,
+			// 2.5 > success < 3
+			// 1.5 > degraded < 2.5
+			// 0 > failed < 1.5
+
+			if tc.cluster.OverallHealth != tc.expected {
+				t.Errorf("expected: %v, got: %v", tc.expected,
 					tc.cluster.Happy)
 			}
 		})
+
 	}
 }

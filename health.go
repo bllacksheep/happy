@@ -69,11 +69,12 @@ func (c *Cluster) IsHappy() {
 	}
 
 	totalScore := score / weight
-	fmt.Println(totalScore)
 
 	if totalScore == float64(Success) {
 		c.Happy += 1
 	}
+
+	c.OverallHealth = totalScore
 }
 
 // custom checks in here
