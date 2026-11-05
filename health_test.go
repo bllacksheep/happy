@@ -8,51 +8,90 @@ import (
 
 func TestIsHappy(t *testing.T) {
 
-	// dummy case for now
-	case1 := []byte(`{
+	type testCase struct {
+		name     string
+		cluster  Cluster
+		expected int
+	}
+
+	failed := []byte(`{
 	  "status": {
 	  "conditions": [
 	    {
-	      "lastTransitionTime": "2026-10-29T09:40:46Z",
-	      "message": "Cluster is Ready",
 	      "reason": "ClusterIsNotReady",
-	      "status": "True",
-	      "type": "Ready"
 	    },
 	    {
-	      "lastTransitionTime": "2026-10-29T09:39:52Z",
-	      "message": "Continuous archiving is working",
 	      "reason": "ContinuousArchivingSucceeded",
-	      "status": "True",
-	      "type": "ContinuousArchiving"
 	    },
 	    {
-	      "lastTransitionTime": "2026-10-29T18:12:06Z",
-	      "message": "exit status 1",
 	      "reason": "LastBackupSucceeded",
-	      "status": "False",
-	      "type": "LastBackupSucceeded"
 	    }
 	  ]
 	}
-        }`)
+    }`)
 
-	// named cluster can test when status is nil
-	cluster := Cluster{
-		Name: "test-case1-cluster",
+	degraded := []byte(`{
+	  "status": {
+	  "conditions": [
+	    {
+	      "reason": "ClusterIsReady",
+	    },
+	    {
+	      "reason": "ContinuousArchivingSucceeded",
+	    },
+	    {
+	      "reason": "LastBackupFailed",
+	    }
+	  ]
+	}
+    }`)
+
+	succeeded := []byte(`{
+	  "status": {
+	  "conditions": [
+	    {
+	      "reason": "ClusterIsReady",
+	    },
+	    {
+	      "reason": "ContinuousArchivingSucceeded",
+	    },
+	    {
+	      "reason": "LastBackupSucceeded",
+	    }
+	  ]
+	}
+    }`)
+
+	statusResponses := [][]byte{
+		failed,
+		succeeded,
+		degraded,
 	}
 
-	err := json.Unmarshal(case1, &cluster.Status)
-	if err != nil {
-		fmt.Println("failed unmarshal", err)
+	var cases []testCase
+
+	for i := range len(statusResponses) {
+		var cluster Cluster
+
+		cluster.Name = fmt.Sprintf("test-%v", i)
+
+		err := json.Unmarshal(statusResponses[i], &cluster.Status)
+		if err != nil {
+			t.Errorf("failed unmarshal %s", err)
+		}
+
+		cases = append(cases, testCase{cluster.Name, cluster, i})
 	}
 
-	cluster.IsHappy()
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.cluster.IsHappy()
 
-	if cluster.Happy < 1 {
-		t.Errorf("%s polled x%v, cluster happy x%v", cluster.Name,
-			cluster.Polled,
-			cluster.Happy)
-
+			if tc.cluster.Happy < 1 {
+				t.Errorf("%s polled x%v, cluster happy x%v", tc.cluster.Name,
+					tc.cluster.Polled,
+					tc.cluster.Happy)
+			}
+		})
 	}
 }
