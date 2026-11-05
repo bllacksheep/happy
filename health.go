@@ -46,7 +46,7 @@ func (c *Cluster) IsHappy() {
 
 	// something like... success contributes less, skew if fail
 
-	// failed or failing?
+	// failed or failing? needs something else
 	clusterStates := map[string]ClusterState{
 		"ClusterIsReady":               {Status: Success, Weight: Acceptable},
 		"ClusterIsNotReady":            {Status: Fail, Weight: Unacceptable},
