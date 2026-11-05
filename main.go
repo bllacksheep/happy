@@ -91,7 +91,7 @@ func main() {
 			// swap cluster state by name
 			happy[cluster.Name] = &cluster
 
-			slog.Info("main.go", "msg", *happy[cluster.Name])
+			slog.Info("main.go", "msg", *happy[cluster.Name].Status)
 		}
 	}
 

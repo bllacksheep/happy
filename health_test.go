@@ -9,10 +9,11 @@ import (
 func TestIsHappy(t *testing.T) {
 
 	type testCase struct {
-		name     string
-		cluster  Cluster
-		data     []byte
-		expected float64
+		name          string
+		cluster       Cluster
+		data          []byte
+		thresholdLow  float64
+		thresholdHigh float64
 	}
 
 	// cluster not ready should dominate 0.0 failure
@@ -23,7 +24,7 @@ func TestIsHappy(t *testing.T) {
 	      "reason": "ClusterIsNotReady"
 	    },
 	    {
-	      "reason": "ContinuousArchivingFailed"
+	      "reason": "ContinuousArchivingFailing"
 	    },
 	    {
 	      "reason": "LastBackupFailed"
@@ -33,6 +34,7 @@ func TestIsHappy(t *testing.T) {
     }`)
 
 	// cluster not ready should dominate 0.0 failure
+	// backup succeeded doesn't show under conditions if cluster down archiving down
 	failed_with_backup := []byte(`{
 	  "status": {
 	  "conditions": [
@@ -40,7 +42,7 @@ func TestIsHappy(t *testing.T) {
 	      "reason": "ClusterIsNotReady"
 	    },
 	    {
-	      "reason": "ContinuousArchivingFailed"
+	      "reason": "ContinuousArchivingFailing"
 	    },
 	    {
 	      "reason": "LastBackupSucceeded"
@@ -66,25 +68,8 @@ func TestIsHappy(t *testing.T) {
 	}
     }`)
 
-	// cluster ready should dominate
-	succeeded_no_archiving := []byte(`{
-	  "status": {
-	  "conditions": [
-	    {
-	      "reason": "ClusterIsReady"
-	    },
-	    {
-	      "reason": "ContinuousArchivingFailed"
-	    },
-	    {
-	      "reason": "LastBackupSucceeded"
-	    }
-	  ]
-	}
-    }`)
-
-	// cluster ready should dominate
-	succeeded_no_backup := []byte(`{
+	// cluster ready should dominate but degraded
+	succeeded_no_backup_degraded := []byte(`{
 	  "status": {
 	  "conditions": [
 	    {
@@ -100,12 +85,49 @@ func TestIsHappy(t *testing.T) {
 	}
     }`)
 
+	// cluster ready should dominate but degraded
+	succeeded_no_archiving_degraded := []byte(`{
+	  "status": {
+	  "conditions": [
+	    {
+	      "reason": "ClusterIsReady"
+	    },
+	    {
+	      "reason": "ContinuousArchivingFailing"
+	    },
+	    {
+	      "reason": "LastBackupSucceeded"
+	    }
+	  ]
+	}
+    }`)
+
 	cases := []testCase{
-		{name: "failed-no-backup", data: failed_no_backup, expected: 0.0},             // failed
-		{name: "failed-with-backup", data: failed_with_backup, expected: 0.0},         // failed
-		{name: "succeeded-with-backup", data: succeeded_with_backup, expected: 3.0},   // succeeded
-		{name: "succeeded-no-backup", data: succeeded_no_backup, expected: 1.0},       // degraded
-		{name: "succeeded-no-archiving", data: succeeded_no_archiving, expected: 1.0}, // degraded
+		{name: "failed-no-backup",
+			data:          failed_no_backup,
+			thresholdLow:  0.0,
+			thresholdHigh: 1.5,
+		}, // failed
+		{name: "failed-with-backup",
+			data:          failed_with_backup,
+			thresholdLow:  0.0,
+			thresholdHigh: 1.5,
+		}, // failed
+		{name: "succeeded-with-backup",
+			data:          succeeded_with_backup,
+			thresholdLow:  2.5,
+			thresholdHigh: 3.0,
+		}, // succeeded
+		{name: "succeeded-no-backup",
+			data:          succeeded_no_backup_degraded,
+			thresholdLow:  1.5,
+			thresholdHigh: 2.5,
+		}, // degraded
+		{name: "succeeded-no-archiving",
+			data:          succeeded_no_archiving_degraded,
+			thresholdLow:  1.5,
+			thresholdHigh: 2.5,
+		}, // degraded
 	}
 
 	for id, tc := range cases {
@@ -127,9 +149,11 @@ func TestIsHappy(t *testing.T) {
 			// 1.5 > degraded < 2.5
 			// 0 > failed < 1.5
 
-			if tc.cluster.OverallHealth != tc.expected {
-				t.Errorf("expected: %v, got: %v", tc.expected,
-					tc.cluster.Happy)
+			if tc.cluster.OverallHealth <= tc.thresholdHigh ||
+				tc.cluster.OverallHealth >= tc.thresholdLow {
+				t.Errorf("expected: %v < %v <= %v", tc.thresholdLow,
+					tc.cluster.OverallHealth,
+					tc.thresholdHigh)
 			}
 		})
 

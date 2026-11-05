@@ -45,6 +45,8 @@ func (c *Cluster) IsHappy() {
 	// can you weight a check so that if it's failing it skews overall health?
 
 	// something like... success contributes less, skew if fail
+
+	// failed or failing?
 	clusterStates := map[string]ClusterState{
 		"ClusterIsReady":               {Status: Success, Weight: Normal},
 		"ClusterIsNotReady":            {Status: Fail, Weight: High},
