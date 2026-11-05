@@ -63,13 +63,16 @@ func (c *Cluster) IsHappy() {
 		score += float64(state.Status) * state.Weight
 		weight += state.Weight
 		switch current_condition.Reason {
+		// set individual properties
 		case "ContinuousArchivingSucceeded":
 			c.WalReplicationHealthy = true
 		}
 	}
 
 	totalScore := score / weight
+	fmt.Printf("%.1f\n", totalScore)
 
+	// increment overall happy score if cluster in good health
 	if totalScore == float64(Success) {
 		c.Happy += 1
 	}
