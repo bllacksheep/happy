@@ -33,7 +33,8 @@ type Cluster struct {
 	// timer that will track recovery time
 	RTO time.Duration `json:"rto"`
 
-	Happy bool `json:"happy"`
+	Happy  int `json:"happy"`
+	Polled int `json:"polled"`
 }
 
 type Condition struct {

@@ -36,6 +36,8 @@ func (c *Cluster) IsHappy() {
 		return
 	}
 
+	c.Polled += 1
+
 	clusterStatus := c.Status.Status
 
 	// conditions first
@@ -70,7 +72,7 @@ func (c *Cluster) IsHappy() {
 	fmt.Println(totalScore)
 
 	if totalScore == float64(Success) {
-		c.Happy = true
+		c.Happy += 1
 	}
 }
 

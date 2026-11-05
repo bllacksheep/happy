@@ -76,7 +76,6 @@ func main() {
 			ClusterConfig:    cluster,
 			DefaultThreshold: config.Happy.Default.Threshold,
 			DefaultChecks:    config.Happy.Default.HealthChecks,
-
 		}
 		go clusterView.StartClusterStatusChecks(ch)
 	}
@@ -89,9 +88,10 @@ func main() {
 
 			cluster.IsHappy()
 
+			// swap cluster state by name
 			happy[cluster.Name] = &cluster
 
-			slog.Info("main.go", "msg", *happy[cluster.Name].Status)
+			slog.Info("main.go", "msg", *happy[cluster.Name])
 		}
 	}
 

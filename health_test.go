@@ -49,8 +49,10 @@ func TestIsHappy(t *testing.T) {
 
 	cluster.IsHappy()
 
-	if cluster.Happy == false {
-		t.Errorf("not happy %s", cluster.Status)
-	}
+	if cluster.Happy < 1 {
+		t.Errorf("%s polled x%v, cluster happy x%v", cluster.Name,
+			cluster.Polled,
+			cluster.Happy)
 
+	}
 }
