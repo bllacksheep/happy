@@ -36,8 +36,8 @@ func (c *Cluster) IsHappy() {
 		return
 	}
 
-	c.Polled += 1
-	slog.Info("health.go", "msg", fmt.Sprintf("poll count: %v", c.Name))
+	c.Polled++
+	slog.Info("health.go", "msg", fmt.Sprintf("poll count: %v", c.Polled))
 
 	clusterStatus := c.Status.Status
 
@@ -63,6 +63,7 @@ func (c *Cluster) IsHappy() {
 	// total score but need individual scores numerator
 	for _, current_condition := range clusterStatus.Conditions {
 		state := clusterStates[current_condition.Reason]
+		// weighted average
 		score += float64(state.Status) * state.Weight
 		weight += state.Weight
 		switch current_condition.Reason {
@@ -78,7 +79,7 @@ func (c *Cluster) IsHappy() {
 
 	// increment overall happy score if cluster in good health
 	if c.OverallHealth == float64(Success) {
-		c.Happy += 1
+		c.Happy++
 		slog.Info("health.go", "msg", fmt.Sprintf("happy count: %v", c.Happy))
 	}
 

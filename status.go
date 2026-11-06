@@ -77,9 +77,9 @@ func newCnpgClusterRequest(name, ns string) *http.Request {
 		slog.Error("status.go", "msg", err)
 		os.Exit(1)
 	}
-	endpoint_uri := fmt.Sprintf("apis/postgresql.cnpg.io/v1/namespaces/%s/clusters/%s", ns, name)
+	endpoint_uri := "apis/postgresql.cnpg.io/v1/namespaces/" + ns + "/clusters/" + name
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
-	slog.Info("status.go", "msg", fmt.Sprintf("build endpoint %s", endpoint))
+	slog.Info("status.go", "msg", "build endpoint"+endpoint)
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -108,8 +108,6 @@ func newTlsClient() *http.Client {
 
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
 
-	slog.Info("status.go", "msg", "created new tls client %s")
-
 	return &http.Client{
 		Transport: transport,
 		Timeout:   time.Second * 30,
@@ -118,12 +116,14 @@ func newTlsClient() *http.Client {
 
 func (c Cluster) StartClusterStatusChecks(ch chan Cluster) {
 	client := newTlsClient()
+	slog.Info("status.go", "msg", "created new tls client for "+c.Name)
 	req := newCnpgClusterRequest(c.Name, c.Namespace)
 
 	ticker := time.NewTicker(c.DefaultThreshold.Every)
 
-	slog.Info("status.go", "msg", fmt.Sprintf("watcher starting for %s", c.Name))
+	slog.Info("status.go", "msg", "watcher starting for"+c.Name)
 	for range ticker.C {
+		// view refresh
 		c.getClusterStatus(client, req)
 		ch <- c
 		slog.Info("status.go", "msg", "wait for next poll")

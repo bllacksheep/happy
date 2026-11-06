@@ -72,13 +72,13 @@ func main() {
 	ch := make(chan Cluster)
 
 	// will scale for n clusters
-	for _, cluster := range config.Happy.Clusters {
-		clusterView := Cluster{
-			ClusterConfig:    cluster,
+	for _, clusterConfig := range config.Happy.Clusters {
+		cluster := Cluster{
+			ClusterConfig:    clusterConfig,
 			DefaultThreshold: config.Happy.Default.Threshold,
 			DefaultChecks:    config.Happy.Default.HealthChecks,
 		}
-		go clusterView.StartClusterStatusChecks(ch)
+		go cluster.StartClusterStatusChecks(ch)
 	}
 
 	happy := make(map[string]*Cluster, len(config.Happy.Clusters))
