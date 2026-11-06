@@ -107,6 +107,9 @@ func newTlsClient() *http.Client {
 	}
 
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
+
+	slog.Info("status.go", "msg", "created new tls client %s")
+
 	return &http.Client{
 		Transport: transport,
 		Timeout:   time.Second * 30,
@@ -123,5 +126,6 @@ func (c Cluster) StartClusterStatusChecks(ch chan Cluster) {
 	for range ticker.C {
 		c.getClusterStatus(client, req)
 		ch <- c
+		slog.Info("status.go", "msg", "wait for next poll")
 	}
 }

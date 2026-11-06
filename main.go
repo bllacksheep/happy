@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
@@ -92,6 +93,8 @@ func main() {
 			happy[cluster.Name] = &cluster
 
 			slog.Info("main.go", "msg", *happy[cluster.Name].Status)
+			slog.Info("main.go", "msg", fmt.Sprintf("polled: %v, happy: %v",
+				happy[cluster.Name].Polled, happy[cluster.Name].Happy))
 		}
 	}
 
