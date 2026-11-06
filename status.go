@@ -33,9 +33,10 @@ type Cluster struct {
 	// timer that will track recovery time
 	RTO time.Duration `json:"rto"`
 
-	Happy         int     `json:"happy"`
 	OverallHealth float64 `json:"overall_health"`
 	Polled        int     `json:"polled"`
+	Succeeded     int     `json:"succeeded"`
+	Happy         bool    `json:"happy"`
 }
 
 type Condition struct {
@@ -56,14 +57,14 @@ type ClusterStatus struct {
 func (c *Cluster) getClusterStatus(client *http.Client, r *http.Request) {
 	resp, err := client.Do(r)
 	if err != nil {
-		slog.Error("status.go", "msg", err)
+		slog.Error("status.go", c.Name, err)
 		os.Exit(1)
 	}
 
 	var cs ClusterStatus
 	err = json.NewDecoder(resp.Body).Decode(&cs)
 	if err != nil {
-		slog.Error("status.go", "msg", err)
+		slog.Error("status.go", c.Name, err)
 		os.Exit(1)
 	}
 
@@ -74,16 +75,16 @@ func (c *Cluster) getClusterStatus(client *http.Client, r *http.Request) {
 func newCnpgClusterRequest(name, ns string) *http.Request {
 	tokenData, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	if err != nil {
-		slog.Error("status.go", "msg", err)
+		slog.Error("status.go", name, err)
 		os.Exit(1)
 	}
 	endpoint_uri := "apis/postgresql.cnpg.io/v1/namespaces/" + ns + "/clusters/" + name
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
-	slog.Info("status.go", "msg", "cluster "+name+" build endpoint "+endpoint)
+	slog.Info("status.go", name, "endpoint "+endpoint)
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
-		slog.Error("status.go", "msg", err)
+		slog.Error("status.go", name, err)
 		os.Exit(1)
 	}
 
@@ -92,10 +93,10 @@ func newCnpgClusterRequest(name, ns string) *http.Request {
 	return req
 }
 
-func newTlsClient() *http.Client {
+func newTlsClient(name string) *http.Client {
 	caCertData, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
 	if err != nil {
-		slog.Error("status.go", "msg", err)
+		slog.Error("status.go", name, err)
 		os.Exit(1)
 	}
 
@@ -115,17 +116,17 @@ func newTlsClient() *http.Client {
 }
 
 func (c *Cluster) StartClusterStatusChecks(ch chan *Cluster) {
-	client := newTlsClient()
-	slog.Info("status.go", "msg", "created new tls client for "+c.Name)
+	client := newTlsClient(c.Name)
+	slog.Info("status.go", c.Name, "created new tls client")
 	req := newCnpgClusterRequest(c.Name, c.Namespace)
 
 	ticker := time.NewTicker(c.DefaultThreshold.Every)
 
-	slog.Info("status.go", "msg", "watcher starting for"+c.Name)
+	slog.Info("status.go", c.Name, "started watcher")
 	for range ticker.C {
 		// view refresh
 		c.getClusterStatus(client, req)
 		ch <- c
-		slog.Info("status.go", "msg", "wait for next poll")
+		slog.Info("status.go", c.Name, "wait for next poll")
 	}
 }

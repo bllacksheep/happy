@@ -63,11 +63,13 @@ func validateConfig() Config {
 		os.Exit(1)
 	}
 
+	slog.Info("main.go", "msg", "validated config")
 	// check required feilds here
 	return happyConfig
 }
 
 func main() {
+	slog.Info("main.go", "msg", "starting happy")
 	config := validateConfig()
 	ch := make(chan *Cluster)
 
@@ -83,6 +85,8 @@ func main() {
 
 	happy := make(map[string]*Cluster, len(config.Happy.Clusters))
 
+	slog.Info("main.go", "msg", "happy started")
+
 	for {
 		select {
 		case cluster := <-ch:
@@ -91,11 +95,16 @@ func main() {
 
 			// swap cluster state by name
 			happy[cluster.Name] = cluster
+			currentCluster := happy[cluster.Name]
 
-			slog.Info("main.go", "msg", *happy[cluster.Name].Status)
-			// change to happy/polled format i.e. 3/3
-			slog.Info("main.go", "msg", fmt.Sprintf("polled: %v, happy: %v",
-				happy[cluster.Name].Polled, happy[cluster.Name].Happy))
+			slog.Info("main.go", currentCluster.Name, *happy[cluster.Name].Status)
+
+			slo := 100 * (float64(currentCluster.Succeeded) / float64(currentCluster.Polled))
+
+			slog.Info("main.go", currentCluster.Name,
+				fmt.Sprintf("succeeded/polled: %v/%v, happy %v, slo: %.3f%%",
+					currentCluster.Succeeded, currentCluster.Polled,
+					currentCluster.Happy, slo))
 		}
 	}
 

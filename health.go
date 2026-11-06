@@ -32,12 +32,12 @@ func (c *Cluster) IsHappy() {
 	// customChecks()
 
 	if c.Status == nil {
-		slog.Info("health.go", "msg", fmt.Sprintf("pending response for %s", c.Name))
+		slog.Info("health.go", c.Name, "pending response from client")
 		return
 	}
 
 	c.Polled++
-	slog.Info("health.go", "msg", fmt.Sprintf("poll count: %v", c.Polled))
+	slog.Info("health.go", c.Name, fmt.Sprintf("poll count: %v", c.Polled))
 
 	clusterStatus := c.Status.Status
 
@@ -69,20 +69,24 @@ func (c *Cluster) IsHappy() {
 		switch current_condition.Reason {
 		// set individual properties
 		case "ContinuousArchivingSucceeded":
-			slog.Info("health.go", "msg", "wal replication is healthy")
+			slog.Info("health.go", c.Name, "wal replication is healthy")
 			c.WalReplicationHealthy = true
 		}
 	}
 
 	c.OverallHealth = score / weight
-	slog.Info("health.go", "msg", fmt.Sprintf("health score: %v", c.OverallHealth))
+	slog.Info("health.go", c.Name, fmt.Sprintf("health score: %v", c.OverallHealth))
 
 	// increment overall happy score if cluster in good health
 	if c.OverallHealth == float64(Success) {
-		c.Happy++
-		slog.Info("health.go", "msg", fmt.Sprintf("happy count: %v", c.Happy))
+		c.Happy = true
+		c.Succeeded++
+		slog.Info("health.go", c.Name, fmt.Sprintf("happy count: %v", c.Succeeded))
+		return
 	}
 
+	slog.Info("health.go", c.Name, fmt.Sprintf("happy count: %v", c.Succeeded))
+	c.Happy = false
 }
 
 // custom checks in here
@@ -99,7 +103,7 @@ func customChecks(cluster ClusterConfig) {
 	fmt.Println(db_connection_string)
 	conn, err := pgx.Connect(context.Background(), db_connection_string)
 	if err != nil {
-		slog.Error("health.go", "err", err)
+		slog.Error("health.go", cluster.Name, err)
 		os.Exit(1)
 	}
 	defer conn.Close(context.Background())
@@ -109,16 +113,16 @@ func customChecks(cluster ClusterConfig) {
 		happy[i].Name = hc.Name
 		err = conn.QueryRow(context.Background(), hc.Statement).Scan(&happy[i].Result)
 		if err != nil {
-			slog.Error("health.go", "err", err)
+			slog.Error("health.go", cluster.Name, err)
 		}
 	}
 
 	jsonData, err := json.MarshalIndent(happy, "", " ")
 	if err != nil {
-		slog.Error("health.go", "err", err)
+		slog.Error("health.go", cluster.Name, err)
 		os.Exit(1)
 	}
 
 	fmt.Println(string(jsonData))
-	slog.Info("main.go", "msg", jsonData)
+	slog.Info("main.go", cluster.Name, jsonData)
 }
