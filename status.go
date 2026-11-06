@@ -79,7 +79,7 @@ func newCnpgClusterRequest(name, ns string) *http.Request {
 	}
 	endpoint_uri := "apis/postgresql.cnpg.io/v1/namespaces/" + ns + "/clusters/" + name
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
-	slog.Info("status.go", "msg", "build endpoint"+endpoint)
+	slog.Info("status.go", "msg", "cluster "+name+" build endpoint "+endpoint)
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -114,7 +114,7 @@ func newTlsClient() *http.Client {
 	}
 }
 
-func (c Cluster) StartClusterStatusChecks(ch chan Cluster) {
+func (c *Cluster) StartClusterStatusChecks(ch chan *Cluster) {
 	client := newTlsClient()
 	slog.Info("status.go", "msg", "created new tls client for "+c.Name)
 	req := newCnpgClusterRequest(c.Name, c.Namespace)

@@ -69,7 +69,7 @@ func validateConfig() Config {
 
 func main() {
 	config := validateConfig()
-	ch := make(chan Cluster)
+	ch := make(chan *Cluster)
 
 	// will scale for n clusters
 	for _, clusterConfig := range config.Happy.Clusters {
@@ -90,9 +90,10 @@ func main() {
 			cluster.IsHappy()
 
 			// swap cluster state by name
-			happy[cluster.Name] = &cluster
+			happy[cluster.Name] = cluster
 
 			slog.Info("main.go", "msg", *happy[cluster.Name].Status)
+			// change to happy/polled format i.e. 3/3
 			slog.Info("main.go", "msg", fmt.Sprintf("polled: %v, happy: %v",
 				happy[cluster.Name].Polled, happy[cluster.Name].Happy))
 		}
