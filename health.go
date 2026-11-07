@@ -68,6 +68,7 @@ func (c *Cluster) IsHappy() {
 		score += float64(state.Status) * state.Weight
 		weight += state.Weight
 		switch current_condition.Reason {
+
 		// set individual properties
 		case "ContinuousArchivingSucceeded":
 			slog.Info("health.go", c.Name, "wal replication is healthy")

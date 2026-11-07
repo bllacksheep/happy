@@ -20,6 +20,8 @@ type Threshold struct {
 // cluster status for n clusters
 type Cluster struct {
 	ClusterConfig
+
+	// this can be pulled into the Check
 	DefaultChecks    DefaultHealthChecks
 	DefaultThreshold Threshold
 
