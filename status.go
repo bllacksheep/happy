@@ -42,6 +42,8 @@ type Cluster struct {
 	Happy              bool    `json:"happy"`
 }
 
+
+// needs to go into a cnpg.go or something
 type Condition struct {
 	LastTransitionTime time.Time `json:"lastTransitionTime"`
 	Message            string    `json:"message"`
