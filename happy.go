@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"log/slog"
+	"strconv"
+	"time"
+)
 
 // trying a happy interface
 type Check struct {
@@ -23,5 +27,6 @@ func (c Check) Happy(name string, fn func() bool) bool {
 }
 
 func (c *Check) Toggle(toggle bool) {
+	slog.Info("happy.go", c.Name, "default: "+strconv.FormatBool(toggle))
 	c.Enabled = toggle
 }

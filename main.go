@@ -68,7 +68,14 @@ func validateConfig() Config {
 	return happyConfig
 }
 
-func happyStart() {
+func (c *Cluster) StartDefaultChecks() {
+	c.WalReplicationHealth.Toggle(c.DefaultChecks.CheckWalReplicationHealth)
+	c.LastBackupHealth.Toggle(c.DefaultChecks.CheckLastBackupHealth)
+	c.RPOHealth.Toggle(c.DefaultChecks.CheckRPOHealth)
+	c.DbInstancesHealth.Toggle(c.DefaultChecks.CheckDbInstanceHealth)
+}
+
+func startHappy() {
 	cfg := validateConfig()
 
 	ch := make(chan *Cluster)
@@ -80,9 +87,13 @@ func happyStart() {
 			DefaultThreshold: cfg.Happy.Default.Threshold,
 			DefaultChecks:    cfg.Happy.Default.HealthChecks,
 		}
-		slog.Info("main.go", cluster.Name, "happy started")
+		// is run for every cluster not required but will do for now
+		cluster.StartDefaultChecks()
+
 		go cluster.StartClusterStatusChecks(ch)
 		go cluster.StartCustomChecks()
+
+		slog.Info("main.go", cluster.Name, "happy started")
 	}
 
 	happy := make(map[string]*Cluster, len(cfg.Happy.Clusters))
@@ -108,5 +119,5 @@ func happyStart() {
 }
 
 func main() {
-	happyStart()
+	startHappy()
 }

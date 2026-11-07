@@ -90,8 +90,11 @@ func (c *Cluster) IsHappy() {
 }
 
 /*
-	allow each check to take advantage of % scoring via happy() interface
-	custom checks will need mutex on cluster struct
+allow each check to take advantage of % scoring via happy() interface
+custom checks will need mutex on cluster struct
+
+need to wrap each check in a Check type - will do later
+give check an arbitrary function that executes it's statement?
 */
 
 func (c *Cluster) StartCustomChecks() {

@@ -25,13 +25,13 @@ type Cluster struct {
 
 	Status *ClusterStatus
 
-	CurrentPrimary       string `json:"current_primary"`
+	CurrentPrimary string `json:"current_primary"`
 
 	// playing with idea of common check interface
-	WalReplicationHealth Health `json:"wal_replication_health"`
-	DbInstancesHealth    Health `json:"db_instances_health"`
-	LastBackupHealth     Health `json:"last_backup_health"`
-	RPOHealth            Health `json:"rpo_health"`
+	WalReplicationHealth Check `json:"wal_replication_health"`
+	DbInstancesHealth    Check `json:"db_instances_health"`
+	LastBackupHealth     Check `json:"last_backup_health"`
+	RPOHealth            Check `json:"rpo_health"`
 
 	// timer that will track recovery time
 	RTO time.Duration `json:"rto"`
