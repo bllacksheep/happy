@@ -1,5 +1,5 @@
 happy:
-  default:
+  defaults:
     healthchecks:
       check_cluster_endpoint_health: true
       check_wal_replication_health: true

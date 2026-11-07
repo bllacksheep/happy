@@ -17,32 +17,29 @@ type Threshold struct {
 	Fall  int           `json:"fall" yaml:"fall"`
 }
 
-type Health struct {
-	Healthy bool `json:"healthy"`
-	// other
-}
-
 // cluster status for n clusters
 type Cluster struct {
 	ClusterConfig
-	DefaultThreshold Threshold
 	DefaultChecks    DefaultHealthChecks
+	DefaultThreshold Threshold
 
 	Status *ClusterStatus
 
 	CurrentPrimary       string `json:"current_primary"`
+
+	// playing with idea of common check interface
 	WalReplicationHealth Health `json:"wal_replication_health"`
-	DbInstancesHealthy   bool   `json:"db_instances_healthy"`
-	LastBackupHealthy    bool   `json:"last_backup_healthy"`
-	RPOHealthy           bool   `json:"rpo_healthy"`
+	DbInstancesHealth    Health `json:"db_instances_health"`
+	LastBackupHealth     Health `json:"last_backup_health"`
+	RPOHealth            Health `json:"rpo_health"`
 
 	// timer that will track recovery time
 	RTO time.Duration `json:"rto"`
 
-	OverallHealth float64 `json:"overall_health"`
-	Polled        int     `json:"polled"`
-	Succeeded     int     `json:"succeeded"`
-	Happy         bool    `json:"happy"`
+	OverallHealthScore float64 `json:"overall_health"`
+	Polled             int     `json:"polled"`
+	Succeeded          int     `json:"succeeded"`
+	Happy              bool    `json:"happy"`
 }
 
 type Condition struct {

@@ -70,15 +70,15 @@ func (c *Cluster) IsHappy() {
 		// set individual properties
 		case "ContinuousArchivingSucceeded":
 			slog.Info("health.go", c.Name, "wal replication is healthy")
-			c.WalReplicationHealthy = true
+			c.WalReplicationHealth.Healthy = true
 		}
 	}
 
-	c.OverallHealth = score / weight
-	slog.Info("health.go", c.Name, fmt.Sprintf("health score: %v", c.OverallHealth))
+	c.OverallHealthScore = score / weight
+	slog.Info("health.go", c.Name, fmt.Sprintf("health score: %v", c.OverallHealthScore))
 
 	// increment overall happy score if cluster in good health
-	if c.OverallHealth == float64(Success) {
+	if c.OverallHealthScore == float64(Success) {
 		c.Happy = true
 		c.Succeeded++
 		slog.Info("health.go", c.Name, fmt.Sprintf("happy count: %v", c.Succeeded))

@@ -39,7 +39,7 @@ type Config struct {
 		Default struct {
 			HealthChecks DefaultHealthChecks `yaml:"healthchecks"`
 			Threshold    Threshold           `yaml:"threshold"`
-		} `yaml:"default"`
+		} `yaml:"defaults"`
 		Clusters []ClusterConfig `yaml:"clusters"`
 	} `yaml:"happy"`
 }
