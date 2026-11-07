@@ -68,44 +68,44 @@ func validateConfig() Config {
 	return happyConfig
 }
 
-func main() {
-	slog.Info("main.go", "msg", "starting happy")
-	config := validateConfig()
+func happyStart() {
+	cfg := validateConfig()
+
 	ch := make(chan *Cluster)
 
 	// will scale for n clusters
-	for _, clusterConfig := range config.Happy.Clusters {
+	for _, clusterConfig := range cfg.Happy.Clusters {
 		cluster := Cluster{
 			ClusterConfig:    clusterConfig,
-			DefaultThreshold: config.Happy.Default.Threshold,
-			DefaultChecks:    config.Happy.Default.HealthChecks,
+			DefaultThreshold: cfg.Happy.Default.Threshold,
+			DefaultChecks:    cfg.Happy.Default.HealthChecks,
 		}
+		slog.Info("main.go", cluster.Name, "happy started")
 		go cluster.StartClusterStatusChecks(ch)
 	}
 
-	happy := make(map[string]*Cluster, len(config.Happy.Clusters))
+	happy := make(map[string]*Cluster, len(cfg.Happy.Clusters))
 
 	slog.Info("main.go", "msg", "happy started")
 
-	for {
-		select {
-		case cluster := <-ch:
+	for cluster := range ch {
+		cluster.IsHappy()
 
-			cluster.IsHappy()
+		// swap cluster state by name
+		happy[cluster.Name] = cluster
+		currentCluster := happy[cluster.Name]
 
-			// swap cluster state by name
-			happy[cluster.Name] = cluster
-			currentCluster := happy[cluster.Name]
+		slog.Info("main.go", currentCluster.Name, *happy[cluster.Name].Status)
 
-			slog.Info("main.go", currentCluster.Name, *happy[cluster.Name].Status)
+		slo := 100 * (float64(currentCluster.Succeeded) / float64(currentCluster.Polled))
 
-			slo := 100 * (float64(currentCluster.Succeeded) / float64(currentCluster.Polled))
-
-			slog.Info("main.go", currentCluster.Name,
-				fmt.Sprintf("succeeded/polled: %v/%v, happy %v, slo: %.3f%%",
-					currentCluster.Succeeded, currentCluster.Polled,
-					currentCluster.Happy, slo))
-		}
+		slog.Info("main.go", currentCluster.Name,
+			fmt.Sprintf("succeeded/polled: %v/%v, happy %v, slo: %.3f%%",
+				currentCluster.Succeeded, currentCluster.Polled,
+				currentCluster.Happy, slo))
 	}
+}
 
+func main() {
+	happyStart()
 }
