@@ -7,6 +7,7 @@ import (
 )
 
 // trying a happy interface
+// all 'checks' will satisfy this
 type Check struct {
 	Name        string    `json:"name"`
 	Healthy     bool      `json:"healthy"`
