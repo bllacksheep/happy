@@ -104,32 +104,34 @@ func (c *Cluster) StartCustomChecks() {
 	numCustomChecks := len(customChecks)
 	happy := make([]Result, numCustomChecks)
 
+	// log connected to
 	db_connection_string := os.Getenv("DB_CONNECTION_URI")
 	if db_connection_string == "" {
 		// needs to come from status probe
 	}
 
-	fmt.Println(db_connection_string)
-	conn, err := pgx.Connect(context.Background(), db_connection_string)
-	if err != nil {
-		slog.Error("health.go", c.Name, err)
-		os.Exit(1)
-	}
-
-	defer conn.Close(context.Background())
-
 	for i, check := range customChecks {
 		happy[i].Name = check.Name
 		go func() {
+
+			conn, err := pgx.Connect(context.Background(), db_connection_string)
+			if err != nil {
+				slog.Error("health.go", check.Name, err)
+				os.Exit(1)
+			}
+
+			defer conn.Close(context.Background())
+
 			ticker := time.NewTicker(check.Every)
+
 			for range ticker.C {
 				err = conn.QueryRow(context.Background(), check.Statement).Scan(&happy[i].Result)
 				if err != nil {
-					slog.Error("health.go", c.Name, err)
+					slog.Error("health.go", check.Name, err)
 				}
 				//c.getClusterStatus(client, req)
 				//ch <- c
-				slog.Info("status.go", c.Name, "wait for next poll")
+				slog.Info("health.go", check.Name, "wait for next poll")
 			}
 		}()
 	}
@@ -143,5 +145,5 @@ func (c *Cluster) StartCustomChecks() {
 	}
 
 	fmt.Println(string(jsonData))
-	slog.Info("main.go", c.Name, jsonData)
+	slog.Info("health.go", c.Name, jsonData)
 }
