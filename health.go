@@ -124,11 +124,22 @@ func (c *Cluster) StartCustomChecks() {
 
 			ticker := time.NewTicker(check.Every)
 
+			// for loop and start in go routine for each check bounded by its interval
 			for range ticker.C {
+				// r/w on happy[] map at this point completely unsafe!
 				err = conn.QueryRow(context.Background(), check.Statement).Scan(&happy[i].Result)
 				if err != nil {
 					slog.Error("health.go", check.Name, err)
 				}
+
+				jsonData, err := json.MarshalIndent(happy, "", " ")
+				if err != nil {
+					slog.Error("health.go", check.Name, err)
+					os.Exit(1)
+				}
+
+				fmt.Println(string(jsonData))
+				slog.Info("health.go", c.Name, jsonData)
 				//c.getClusterStatus(client, req)
 				//ch <- c
 				slog.Info("health.go", check.Name, "wait for next poll")
@@ -136,14 +147,4 @@ func (c *Cluster) StartCustomChecks() {
 		}()
 	}
 
-	// for loop and start in go routine for each check bounded by its interval
-
-	jsonData, err := json.MarshalIndent(happy, "", " ")
-	if err != nil {
-		slog.Error("health.go", c.Name, err)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(jsonData))
-	slog.Info("health.go", c.Name, jsonData)
 }
