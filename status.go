@@ -17,6 +17,11 @@ type Threshold struct {
 	Fall  int           `json:"fall" yaml:"fall"`
 }
 
+type Health struct {
+	Healthy bool `json:"healthy"`
+	// other
+}
+
 // cluster status for n clusters
 type Cluster struct {
 	ClusterConfig
@@ -25,10 +30,11 @@ type Cluster struct {
 
 	Status *ClusterStatus
 
-	WalReplicationHealthy bool `json:"wal_replication_healthy"`
-	DbInstancesHealthy    bool `json:"db_instances_healthy"`
-	LastBackupHealthy     bool `json:"last_backup_healthy"`
-	RPOHealthy            bool `json:"rpo_healthy"`
+	CurrentPrimary       string `json:"current_primary"`
+	WalReplicationHealth Health `json:"wal_replication_health"`
+	DbInstancesHealthy   bool   `json:"db_instances_healthy"`
+	LastBackupHealthy    bool   `json:"last_backup_healthy"`
+	RPOHealthy           bool   `json:"rpo_healthy"`
 
 	// timer that will track recovery time
 	RTO time.Duration `json:"rto"`

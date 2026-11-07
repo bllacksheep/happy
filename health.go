@@ -89,9 +89,14 @@ func (c *Cluster) IsHappy() {
 	c.Happy = false
 }
 
-// custom checks in here
-func customChecks(cluster ClusterConfig) {
-	customChecks := cluster.Checks
+/*
+	allow each check to take advantage of % scoring via happy() interface
+	custom checks will need mutex on cluster struct
+*/
+
+func (c *Cluster) StartCustomChecks() {
+
+	customChecks := c.ClusterConfig.Checks
 	numCustomChecks := len(customChecks)
 	happy := make([]Result, numCustomChecks)
 
@@ -103,26 +108,36 @@ func customChecks(cluster ClusterConfig) {
 	fmt.Println(db_connection_string)
 	conn, err := pgx.Connect(context.Background(), db_connection_string)
 	if err != nil {
-		slog.Error("health.go", cluster.Name, err)
+		slog.Error("health.go", c.Name, err)
 		os.Exit(1)
 	}
+
 	defer conn.Close(context.Background())
 
-	for i := 0; i < numCustomChecks; i++ {
-		hc := customChecks[i]
-		happy[i].Name = hc.Name
-		err = conn.QueryRow(context.Background(), hc.Statement).Scan(&happy[i].Result)
-		if err != nil {
-			slog.Error("health.go", cluster.Name, err)
-		}
+	for i, check := range customChecks {
+		happy[i].Name = check.Name
+		go func() {
+			ticker := time.NewTicker(check.Every)
+			for range ticker.C {
+				err = conn.QueryRow(context.Background(), check.Statement).Scan(&happy[i].Result)
+				if err != nil {
+					slog.Error("health.go", c.Name, err)
+				}
+				//c.getClusterStatus(client, req)
+				//ch <- c
+				slog.Info("status.go", c.Name, "wait for next poll")
+			}
+		}()
 	}
+
+	// for loop and start in go routine for each check bounded by its interval
 
 	jsonData, err := json.MarshalIndent(happy, "", " ")
 	if err != nil {
-		slog.Error("health.go", cluster.Name, err)
+		slog.Error("health.go", c.Name, err)
 		os.Exit(1)
 	}
 
 	fmt.Println(string(jsonData))
-	slog.Info("main.go", cluster.Name, jsonData)
+	slog.Info("main.go", c.Name, jsonData)
 }

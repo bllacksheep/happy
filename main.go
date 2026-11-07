@@ -82,6 +82,7 @@ func happyStart() {
 		}
 		slog.Info("main.go", cluster.Name, "happy started")
 		go cluster.StartClusterStatusChecks(ch)
+		go cluster.StartCustomChecks()
 	}
 
 	happy := make(map[string]*Cluster, len(cfg.Happy.Clusters))
