@@ -69,10 +69,16 @@ func validateConfig() Config {
 }
 
 func (c *Cluster) StartDefaultChecks() {
-	c.WalReplicationHealth.Toggle(c.DefaultChecks.CheckWalReplicationHealth)
-	c.LastBackupHealth.Toggle(c.DefaultChecks.CheckLastBackupHealth)
-	c.RPOHealth.Toggle(c.DefaultChecks.CheckRPOHealth)
-	c.DbInstancesHealth.Toggle(c.DefaultChecks.CheckDbInstanceHealth)
+	c.WalReplicationHealth.Toggle("default_wal_replication_check_enabled",
+		c.DefaultChecks.CheckWalReplicationHealth)
+	c.LastBackupHealth.Toggle("default_backups_check_enabled",
+		c.DefaultChecks.CheckLastBackupHealth)
+	c.RPOHealth.Toggle("default_rpo_check_enabled",
+		c.DefaultChecks.CheckRPOHealth)
+	c.DbInstancesHealth.Toggle("default_db_instance_check_enabled",
+		c.DefaultChecks.CheckDbInstanceHealth)
+
+	// go startDefaultChecks?
 }
 
 func startHappy() {

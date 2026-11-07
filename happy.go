@@ -26,7 +26,8 @@ func (c Check) Happy(name string, fn func() bool) bool {
 	return fn()
 }
 
-func (c *Check) Toggle(toggle bool) {
-	slog.Info("happy.go", c.Name, "default: "+strconv.FormatBool(toggle))
+func (c *Check) Toggle(name string, toggle bool) {
+	c.Name = name
 	c.Enabled = toggle
+	slog.Info("happy.go", c.Name, "default: "+strconv.FormatBool(c.Enabled))
 }
