@@ -16,7 +16,7 @@ type Checker interface {
 
 type Poller interface {
 	Checker
-	Refresh() bool
+	Poll() bool
 }
 
 type Check struct {
@@ -74,11 +74,11 @@ type SqlCheck struct {
 	ConnectionString string
 }
 
-func (c *HttpCheck) Refresh() bool {
+func (c *HttpCheck) Poll() bool {
 	return true
 }
 
-func (c *SqlCheck) Refresh() bool {
+func (c *SqlCheck) Poll() bool {
 	return true
 }
 

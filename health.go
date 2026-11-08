@@ -65,6 +65,7 @@ func (c *Cluster) IsHappy() {
 		weight += state.Weight
 		switch current_condition.Reason {
 
+		// need to build checks for these now
 		// set individual properties
 		case "ContinuousArchivingSucceeded":
 			slog.Info("health.go", c.Name, "wal replication is healthy")
@@ -102,7 +103,7 @@ func (c *Cluster) StartChecks() {
 	}
 
 	for _, check := range c.Checks {
-		check.Happy()
+		check.Happy(check.Poll)
 
 		/*
 			go func() {
