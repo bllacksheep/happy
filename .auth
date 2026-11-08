@@ -1,4 +1,0 @@
-# testing against dev data
-export DB_CONNECTION_URI="postgres://app:SV6ATdXGb1G5LSvDfAUQHnZnv5fRNnsop66iPINR8SWFttR0hYPKUmQfH19TKkUK@localhost:5432"
-export DB_USERNAME=app
-export DB_PASSWORD=SV6ATdXGb1G5LSvDfAUQHnZnv5fRNnsop66iPINR8SWFttR0hYPKUmQfH19TKkUK
