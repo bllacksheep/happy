@@ -59,7 +59,7 @@ func startHappy() {
 		cluster.StartDefaultChecks(cfg.Happy.Defaults.HealthChecks)
 
 		go cluster.StartStatusPoller(ch)
-		go cluster.StartCustomChecks()
+		go cluster.StartChecks()
 
 		slog.Info("main.go", cluster.Name, "happy started")
 	}

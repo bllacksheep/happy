@@ -9,10 +9,6 @@ import (
 	"time"
 )
 
-// trying a happy interface
-// all 'checks' will satisfy this
-// read wht you can immediately into a check object
-// use toggles to set things that are less obvious
 type Check struct {
 	Name        string `json:"name" yaml:"name"`
 	ClusterName string
@@ -32,18 +28,24 @@ type Check struct {
 	UseSecondary bool   `json:"use_secondary" yaml:"use_secondary"`
 	UseInstance  string `json:"use_instance" yaml:"use_instance"`
 
-	Statement string `json:"statement" yaml:"statement"`
-
 	Threshold Threshold `json:"threshold" yaml:"threshold"`
 
 	LastFailedAt  time.Time `json:"last_failed_at"`
 	LastCheckedAt time.Time `json:"last_checked_at"`
 }
 
-// custom health check router?
-func (c Check) Happy(check func(string) bool) {
+type HttpCheck struct {
+	Check
+	Url string
+}
+type SqlCheck struct {
+	Check
+	Statement string
+}
+
+func (c *Check) Happy() {
 	if c.Enabled {
-		c.Healthy = check(c.Statement)
+		c.Healthy = c.Refresh()
 		c.LastCheckedAt = time.Now()
 
 		if !c.Healthy {
@@ -52,18 +54,25 @@ func (c Check) Happy(check func(string) bool) {
 	}
 }
 
-// can do more with toggling here
+func (c *HttpCheck) Refresh() bool {
+	return true
+}
+
+func (c *SqlCheck) Refresh() bool {
+	return true
+}
+
 func (c *Check) Toggle() {
 	if c.IsDefault {
 		c.Name = "default_" + c.Name
 	}
-
 	slog.Info("config.go", c.Name, strconv.FormatBool(c.Enabled))
 }
 
 type Health interface {
-	Happy(func(string) bool)
-	Toggle(string, bool)
+	Happy()
+	Toggle()
+	Refresh() bool
 }
 
 type ClusterConfig struct {

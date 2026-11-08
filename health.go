@@ -98,20 +98,17 @@ custom checks will need mutex on cluster struct
 need to wrap each check in a Check type - will do later
 give check an arbitrary function that executes it's statement?
 */
-func (c *Cluster) StartCustomChecks() {
-	checks := make([]Check, len(c.ClusterConfig.Checks))
+func (c *Cluster) StartChecks() {
 
 	db_connection_string := os.Getenv("DB_CONNECTION_URI")
 	if db_connection_string == "" {
 		// needs to come from status probe
 	}
 
-	for i, check := range checks {
-		name := c.ClusterConfig.Checks[i].Name
-		enabled := c.ClusterConfig.Checks[i].Enabled
-		threshold := c.ClusterConfig.Checks[i].Threshold
-		check.Toggle(name, enabled, threshold)
+	for _, check := range c.Checks {
+		check.Happy()
 
+		/*
 		go func() {
 			conn, err := pgx.Connect(context.Background(), db_connection_string)
 			if err != nil {
@@ -144,6 +141,7 @@ func (c *Cluster) StartCustomChecks() {
 				slog.Info("health.go", check.Name, "wait for next poll")
 			}
 		}()
+	*/
 	}
 
 }
