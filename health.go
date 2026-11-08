@@ -98,23 +98,21 @@ custom checks will need mutex on cluster struct
 need to wrap each check in a Check type - will do later
 give check an arbitrary function that executes it's statement?
 */
-
 func (c *Cluster) StartCustomChecks() {
+	checks := make([]Check, len(c.ClusterConfig.Checks))
 
-	customChecks := c.ClusterConfig.Checks
-	numCustomChecks := len(customChecks)
-	happy := make([]Result, numCustomChecks)
-
-	// log connected to
 	db_connection_string := os.Getenv("DB_CONNECTION_URI")
 	if db_connection_string == "" {
 		// needs to come from status probe
 	}
 
-	for i, check := range customChecks {
-		happy[i].Name = check.Name
-		go func() {
+	for i, check := range checks {
+		name := c.ClusterConfig.Checks[i].Name
+		enabled := c.ClusterConfig.Checks[i].Enabled
+		threshold := c.ClusterConfig.Checks[i].Threshold
+		check.Toggle(name, enabled, threshold)
 
+		go func() {
 			conn, err := pgx.Connect(context.Background(), db_connection_string)
 			if err != nil {
 				slog.Error("health.go", check.Name, err)
@@ -123,17 +121,17 @@ func (c *Cluster) StartCustomChecks() {
 
 			defer conn.Close(context.Background())
 
-			ticker := time.NewTicker(check.Every)
+			ticker := time.NewTicker(check.Threshold.Every)
 
 			// for loop and start in go routine for each check bounded by its interval
 			for range ticker.C {
-				// r/w on happy[] map at this point completely unsafe!
-				err = conn.QueryRow(context.Background(), check.Statement).Scan(&happy[i].Result)
+				// r/w on checks[] map at this point completely unsafe!
+				err = conn.QueryRow(context.Background(), check.Statement).Scan(&checks[i].Result)
 				if err != nil {
 					slog.Error("health.go", check.Name, err)
 				}
 
-				jsonData, err := json.MarshalIndent(happy, "", " ")
+				jsonData, err := json.MarshalIndent(checks, "", " ")
 				if err != nil {
 					slog.Error("health.go", check.Name, err)
 					os.Exit(1)

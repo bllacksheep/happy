@@ -19,17 +19,17 @@ type Threshold struct {
 
 // cluster status for n clusters
 type Cluster struct {
-	ClusterConfig
+	Name      string
+	Namespace string
 
-	// this can be pulled into the Check
-	DefaultChecks    DefaultHealthChecks
 	DefaultThreshold Threshold
-
-	Status *ClusterStatus
 
 	CurrentPrimary string `json:"current_primary"`
 
 	// playing with idea of common check interface
+	Checks []Check
+
+	// defaults should be added to check slice
 	WalReplicationHealth Check `json:"wal_replication_health"`
 	DbInstancesHealth    Check `json:"db_instances_health"`
 	LastBackupHealth     Check `json:"last_backup_health"`
@@ -41,7 +41,11 @@ type Cluster struct {
 	OverallHealthScore float64 `json:"overall_health"`
 	Polled             int     `json:"polled"`
 	Succeeded          int     `json:"succeeded"`
-	Happy              bool    `json:"happy"`
+
+	// status and happy ?
+	Happy bool `json:"happy"`
+
+	Status *ClusterStatus
 }
 
 // needs to go into a cnpg.go or something
@@ -121,7 +125,10 @@ func newTlsClient(name string) *http.Client {
 	}
 }
 
-func (c *Cluster) StartClusterStatusChecks(ch chan *Cluster) {
+func (c *Cluster) StartStatusPoller(ch chan *Cluster) {
+
+	// needs to be on Check
+
 	client := newTlsClient(c.Name)
 	slog.Info("status.go", c.Name, "created new tls client")
 	req := newCnpgClusterRequest(c.Name, c.Namespace)

@@ -5,17 +5,42 @@ import (
 	"log/slog"
 )
 
-func (c *Cluster) StartDefaultChecks() {
-	c.WalReplicationHealth.Toggle("wal_replication_check_enabled",
-		c.DefaultChecks.CheckWalReplicationHealth, true)
-	c.LastBackupHealth.Toggle("backups_check_enabled",
-		c.DefaultChecks.CheckLastBackupHealth, true)
-	c.RPOHealth.Toggle("rpo_check_enabled",
-		c.DefaultChecks.CheckRPOHealth, true)
-	c.DbInstancesHealth.Toggle("db_instance_check_enabled",
-		c.DefaultChecks.CheckDbInstanceHealth, true)
+func (c *Cluster) StartDefaultChecks(toggles DefaultHealthCheckToggles) {
+	defaultChecks := []Check{
+		{
+			Name:        "wal_replication_check_enabled",
+			ClusterName: c.Name,
+			IsDefault:   true,
+			Threshold:   c.DefaultThreshold,
+			Enabled:     toggles.CheckWalReplicationHealth,
+		},
+		{
+			Name:        "backups_check_enabled",
+			ClusterName: c.Name,
+			IsDefault:   true,
+			Threshold:   c.DefaultThreshold,
+			Enabled:     toggles.CheckWalReplicationHealth,
+		},
+		{
+			Name:        "rpo_check_enabled",
+			ClusterName: c.Name,
+			IsDefault:   true,
+			Threshold:   c.DefaultThreshold,
+			Enabled:     toggles.CheckWalReplicationHealth,
+		},
+		{
+			Name:        "db_instance_check_enabled",
+			ClusterName: c.Name,
+			IsDefault:   true,
+			Threshold:   c.DefaultThreshold,
+			Enabled:     toggles.CheckWalReplicationHealth,
+		},
+	}
+	c.Checks = defaultChecks
 
-	// go startDefaultChecks?
+	for _, check := range c.Checks {
+		check.Toggle()
+	}
 }
 
 func startHappy() {
@@ -26,14 +51,14 @@ func startHappy() {
 	// should scale for n clusters
 	for _, clusterConfig := range cfg.Happy.Clusters {
 		cluster := Cluster{
-			ClusterConfig:    clusterConfig,
-			DefaultThreshold: cfg.Happy.Default.Threshold,
-			DefaultChecks:    cfg.Happy.Default.HealthChecks,
-		}
-		// is run for every cluster not required but will do for now
-		cluster.StartDefaultChecks()
+			Name:      clusterConfig.Name,
+			Namespace: clusterConfig.Namespace,
 
-		go cluster.StartClusterStatusChecks(ch)
+			DefaultThreshold: cfg.Happy.Defaults.Threshold,
+		}
+		cluster.StartDefaultChecks(cfg.Happy.Defaults.HealthChecks)
+
+		go cluster.StartStatusPoller(ch)
 		go cluster.StartCustomChecks()
 
 		slog.Info("main.go", cluster.Name, "happy started")
