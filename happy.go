@@ -15,8 +15,8 @@ type Check struct {
 	Rise int
 	Fall int
 
-	Polled    int
-	Suceeded  int
+	Polled   int
+	Suceeded int
 
 	Healthy   bool   `json:"healthy"`
 	Enabled   bool   `json:"enabled"`
@@ -44,5 +44,9 @@ func (c *Check) Toggle(name string, toggle bool, isdef bool) {
 	c.Name = name
 	c.Enabled = toggle
 	c.IsDefault = isdef
+
+	if c.IsDefault {
+		c.Name = "default_" + c.Name
+	}
 	slog.Info("happy.go", c.Name, strconv.FormatBool(c.Enabled))
 }
