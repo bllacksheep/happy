@@ -5,9 +5,8 @@ import (
 	"log/slog"
 )
 
-// Check type too rigid now might need to be interface
 func (c *Cluster) StartDefaultChecks(toggles DefaultHealthCheckToggles) {
-	defaultChecks := []Check{
+	defaultChecks := []HttpCheck{
 		{
 			Name:        "wal_replication_check_enabled",
 			ClusterName: c.Name,

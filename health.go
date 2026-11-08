@@ -1,13 +1,9 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"log/slog"
 	"os"
-	"time"
 )
 
 type Result struct {
@@ -109,39 +105,39 @@ func (c *Cluster) StartChecks() {
 		check.Happy()
 
 		/*
-		go func() {
-			conn, err := pgx.Connect(context.Background(), db_connection_string)
-			if err != nil {
-				slog.Error("health.go", check.Name, err)
-				os.Exit(1)
-			}
-
-			defer conn.Close(context.Background())
-
-			ticker := time.NewTicker(check.Threshold.Every)
-
-			// for loop and start in go routine for each check bounded by its interval
-			for range ticker.C {
-				// r/w on checks[] map at this point completely unsafe!
-				err = conn.QueryRow(context.Background(), check.Statement).Scan(&checks[i].Result)
-				if err != nil {
-					slog.Error("health.go", check.Name, err)
-				}
-
-				jsonData, err := json.MarshalIndent(checks, "", " ")
+			go func() {
+				conn, err := pgx.Connect(context.Background(), db_connection_string)
 				if err != nil {
 					slog.Error("health.go", check.Name, err)
 					os.Exit(1)
 				}
 
-				fmt.Println(string(jsonData))
-				slog.Info("health.go", c.Name, jsonData)
-				//c.getClusterStatus(client, req)
-				//ch <- c
-				slog.Info("health.go", check.Name, "wait for next poll")
-			}
-		}()
-	*/
+				defer conn.Close(context.Background())
+
+				ticker := time.NewTicker(check.Threshold.Every)
+
+				// for loop and start in go routine for each check bounded by its interval
+				for range ticker.C {
+					// r/w on checks[] map at this point completely unsafe!
+					err = conn.QueryRow(context.Background(), check.Statement).Scan(&checks[i].Result)
+					if err != nil {
+						slog.Error("health.go", check.Name, err)
+					}
+
+					jsonData, err := json.MarshalIndent(checks, "", " ")
+					if err != nil {
+						slog.Error("health.go", check.Name, err)
+						os.Exit(1)
+					}
+
+					fmt.Println(string(jsonData))
+					slog.Info("health.go", c.Name, jsonData)
+					//c.getClusterStatus(client, req)
+					//ch <- c
+					slog.Info("health.go", check.Name, "wait for next poll")
+				}
+			}()
+		*/
 	}
 
 }

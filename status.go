@@ -26,7 +26,6 @@ type Cluster struct {
 
 	CurrentPrimary string `json:"current_primary"`
 
-	// playing with idea of common check interface
 	Checks []Check
 
 	// defaults should be added to check slice

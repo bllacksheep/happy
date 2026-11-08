@@ -9,7 +9,17 @@ import (
 	"time"
 )
 
-type Check struct {
+type Checker interface {
+	Happy()
+	Toggle()
+}
+
+type Poller interface {
+	Checker
+	Refresh() bool
+}
+
+type CheckMetadata struct {
 	Name        string `json:"name" yaml:"name"`
 	ClusterName string
 
@@ -35,23 +45,31 @@ type Check struct {
 }
 
 type HttpCheck struct {
-	Check
+	CheckMetadata
 	Url string
 }
 type SqlCheck struct {
-	Check
-	Statement string
+	CheckMetadata
+	Statement        string
+	ConnectionString string
 }
 
-func (c *Check) Happy() {
-	if c.Enabled {
-		c.Healthy = c.Refresh()
-		c.LastCheckedAt = time.Now()
+func (cm *CheckMetadata) Happy(fn func() bool) {
+	if cm.Enabled {
+		cm.Healthy = fn()
+		cm.LastCheckedAt = time.Now()
 
-		if !c.Healthy {
-			c.LastFailedAt = time.Now()
+		if !cm.Healthy {
+			cm.LastFailedAt = time.Now()
 		}
 	}
+}
+
+func (cm *CheckMetadata) Toggle() {
+	if cm.IsDefault {
+		cm.Name = "default_" + cm.Name
+	}
+	slog.Info("config.go", cm.Name, strconv.FormatBool(cm.Enabled))
 }
 
 func (c *HttpCheck) Refresh() bool {
@@ -62,24 +80,11 @@ func (c *SqlCheck) Refresh() bool {
 	return true
 }
 
-func (c *Check) Toggle() {
-	if c.IsDefault {
-		c.Name = "default_" + c.Name
-	}
-	slog.Info("config.go", c.Name, strconv.FormatBool(c.Enabled))
-}
-
-type Health interface {
-	Happy()
-	Toggle()
-	Refresh() bool
-}
-
 type ClusterConfig struct {
 	Name      string `yaml:"name"`
 	Namespace string `yaml:"namespace"`
 	// if this was type check, wouldn't need to set so much
-	Checks []Check `yaml:"checks"`
+	Checks []CheckMetadata `yaml:"checks"`
 }
 
 type DefaultHealthCheckToggles struct {
