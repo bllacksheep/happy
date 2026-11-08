@@ -19,20 +19,12 @@ type Threshold struct {
 
 // cluster status for n clusters
 type Cluster struct {
-	Name      string
-	Namespace string
-
+	Name             string
+	Namespace        string
+	CurrentPrimary   string `json:"current_primary"`
 	DefaultThreshold Threshold
 
-	CurrentPrimary string `json:"current_primary"`
-
-	Checks []Check
-
-	// defaults should be added to check slice
-	WalReplicationHealth Check `json:"wal_replication_health"`
-	DbInstancesHealth    Check `json:"db_instances_health"`
-	LastBackupHealth     Check `json:"last_backup_health"`
-	RPOHealth            Check `json:"rpo_health"`
+	Checks []Poller
 
 	// timer that will track recovery time
 	RTO time.Duration `json:"rto"`

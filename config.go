@@ -10,7 +10,7 @@ import (
 )
 
 type Checker interface {
-	Happy()
+	Happy(func() bool)
 	Toggle()
 }
 
@@ -44,16 +44,6 @@ type CheckMetadata struct {
 	LastCheckedAt time.Time `json:"last_checked_at"`
 }
 
-type HttpCheck struct {
-	CheckMetadata
-	Url string
-}
-type SqlCheck struct {
-	CheckMetadata
-	Statement        string
-	ConnectionString string
-}
-
 func (cm *CheckMetadata) Happy(fn func() bool) {
 	if cm.Enabled {
 		cm.Healthy = fn()
@@ -70,6 +60,17 @@ func (cm *CheckMetadata) Toggle() {
 		cm.Name = "default_" + cm.Name
 	}
 	slog.Info("config.go", cm.Name, strconv.FormatBool(cm.Enabled))
+}
+
+type HttpCheck struct {
+	CheckMetadata
+	Url string
+}
+
+type SqlCheck struct {
+	CheckMetadata
+	Statement        string
+	ConnectionString string
 }
 
 func (c *HttpCheck) Refresh() bool {

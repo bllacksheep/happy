@@ -6,29 +6,29 @@ import (
 )
 
 func (c *Cluster) StartDefaultChecks(toggles DefaultHealthCheckToggles) {
-	defaultChecks := []HttpCheck{
-		{
+	defaultChecks := []Poller{
+		&HttpCheck{
 			Name:        "wal_replication_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   c.DefaultThreshold,
 			Enabled:     toggles.CheckWalReplicationHealth,
 		},
-		{
+		&HttpCheck{
 			Name:        "backups_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   c.DefaultThreshold,
 			Enabled:     toggles.CheckWalReplicationHealth,
 		},
-		{
+		&HttpCheck{
 			Name:        "rpo_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   c.DefaultThreshold,
 			Enabled:     toggles.CheckWalReplicationHealth,
 		},
-		{
+		&HttpCheck{
 			Name:        "db_instance_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
