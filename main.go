@@ -6,37 +6,42 @@ import (
 )
 
 func (c *Cluster) RegisterDefaultChecks() {
-	// default checks are always enabled unless configured fasle
+	// default checks are always enabled unless configured false
 	defaultChecks := []Poller{
 		&HttpCheck{
-			Name:        "wal_replication_check_enabled",
-			ClusterName: c.Name,
-			IsDefault:   true,
-			Threshold:   c.DefaultThreshold,
-			Enabled:     true,
+			Name:              "default_wal_replication_check_enabled",
+			ClusterName:       c.Name,
+			IsDefault:         true,
+			Threshold:         c.DefaultThreshold,
+			Enabled:           true,
+			UserDefinedToggle: c.DefaultCheckToggles.CheckWalReplicationHealth,
 		},
 		&HttpCheck{
-			Name:        "backups_check_enabled",
-			ClusterName: c.Name,
-			IsDefault:   true,
-			Threshold:   c.DefaultThreshold,
-			Enabled:     true,
+			Name:              "default_backups_check_enabled",
+			ClusterName:       c.Name,
+			IsDefault:         true,
+			Threshold:         c.DefaultThreshold,
+			Enabled:           true,
+			UserDefinedToggle: c.DefaultCheckToggles.CheckLastBackupHealth,
 		},
 		&HttpCheck{
-			Name:        "rpo_check_enabled",
-			ClusterName: c.Name,
-			IsDefault:   true,
-			Threshold:   c.DefaultThreshold,
-			Enabled:     true,
+			Name:              "default_rpo_check_enabled",
+			ClusterName:       c.Name,
+			IsDefault:         true,
+			Threshold:         c.DefaultThreshold,
+			Enabled:           true,
+			UserDefinedToggle: c.DefaultCheckToggles.CheckRPOHealth,
 		},
 		&HttpCheck{
-			Name:        "db_instance_check_enabled",
-			ClusterName: c.Name,
-			IsDefault:   true,
-			Threshold:   c.DefaultThreshold,
-			Enabled:     true,
+			Name:              "default_db_instance_check_enabled",
+			ClusterName:       c.Name,
+			IsDefault:         true,
+			Threshold:         c.DefaultThreshold,
+			Enabled:           true,
+			UserDefinedToggle: c.DefaultCheckToggles.CheckDbInstanceHealth,
 		},
 	}
+
 	c.Checks = defaultChecks
 
 	for _, check := range c.Checks {

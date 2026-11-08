@@ -56,14 +56,11 @@ func (cm *Check) Happy(fn func() bool) {
 	}
 }
 
-func (cm *Check) Toggle() {
-	if cm.UserDefinedToggle != nil {
-		cm.Enabled = *cm.UserDefinedToggle
+func (c *Check) Toggle() {
+	if c.UserDefinedToggle != nil {
+		c.Enabled = *c.UserDefinedToggle
 	}
-	if cm.IsDefault {
-		cm.Name = "default_" + cm.Name
-	}
-	slog.Info("config.go", cm.Name, strconv.FormatBool(cm.Enabled))
+	slog.Info("config.go", c.Name, strconv.FormatBool(c.Enabled))
 }
 
 type HttpCheck struct {
