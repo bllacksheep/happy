@@ -5,35 +5,36 @@ import (
 	"log/slog"
 )
 
-func (c *Cluster) StartDefaultChecks(toggles DefaultHealthCheckToggles) {
+func (c *Cluster) RegisterDefaultChecks() {
+	// default checks are always enabled unless configured fasle
 	defaultChecks := []Poller{
 		&HttpCheck{
 			Name:        "wal_replication_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   c.DefaultThreshold,
-			Enabled:     toggles.CheckWalReplicationHealth,
+			Enabled:     true,
 		},
 		&HttpCheck{
 			Name:        "backups_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   c.DefaultThreshold,
-			Enabled:     toggles.CheckWalReplicationHealth,
+			Enabled:     true,
 		},
 		&HttpCheck{
 			Name:        "rpo_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   c.DefaultThreshold,
-			Enabled:     toggles.CheckWalReplicationHealth,
+			Enabled:     true,
 		},
 		&HttpCheck{
 			Name:        "db_instance_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   c.DefaultThreshold,
-			Enabled:     toggles.CheckWalReplicationHealth,
+			Enabled:     true,
 		},
 	}
 	c.Checks = defaultChecks
@@ -54,9 +55,10 @@ func startHappy() {
 			Name:      clusterConfig.Name,
 			Namespace: clusterConfig.Namespace,
 
-			DefaultThreshold: cfg.Happy.Defaults.Threshold,
+			DefaultCheckToggles: cfg.Happy.Defaults.HealthChecks,
+			DefaultThreshold:    cfg.Happy.Defaults.Threshold,
 		}
-		cluster.StartDefaultChecks(cfg.Happy.Defaults.HealthChecks)
+		cluster.RegisterDefaultChecks()
 
 		go cluster.StartStatusPoller(ch)
 		go cluster.StartChecks()

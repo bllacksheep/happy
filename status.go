@@ -19,10 +19,12 @@ type Threshold struct {
 
 // cluster status for n clusters
 type Cluster struct {
-	Name             string
-	Namespace        string
-	CurrentPrimary   string `json:"current_primary"`
-	DefaultThreshold Threshold
+	Name           string
+	Namespace      string
+	CurrentPrimary string `json:"current_primary"`
+
+	DefaultCheckToggles DefaultCheckToggles
+	DefaultThreshold    Threshold
 
 	Checks []Poller
 

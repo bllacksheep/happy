@@ -19,7 +19,7 @@ type Poller interface {
 	Refresh() bool
 }
 
-type CheckMetadata struct {
+type Check struct {
 	Name        string `json:"name" yaml:"name"`
 	ClusterName string
 
@@ -28,9 +28,10 @@ type CheckMetadata struct {
 	Polled   int `json:"polled"`
 	Suceeded int `json:"succeeded"`
 
-	Healthy   bool `json:"healthy"`
-	Enabled   bool `json:"enabled" yaml:"enabled"`
-	IsDefault bool `json:"is_default"`
+	Healthy           bool `json:"healthy"`
+	Enabled           bool `json:"enabled" yaml:"enabled"`
+	UserDefinedToggle *bool
+	IsDefault         bool `json:"is_default"`
 
 	// check type might be defined by http: or sql: yaml parent
 	UsePooler    bool   `json:"use_pooler" yaml:"use_pooler"`
@@ -44,7 +45,7 @@ type CheckMetadata struct {
 	LastCheckedAt time.Time `json:"last_checked_at"`
 }
 
-func (cm *CheckMetadata) Happy(fn func() bool) {
+func (cm *Check) Happy(fn func() bool) {
 	if cm.Enabled {
 		cm.Healthy = fn()
 		cm.LastCheckedAt = time.Now()
@@ -55,7 +56,10 @@ func (cm *CheckMetadata) Happy(fn func() bool) {
 	}
 }
 
-func (cm *CheckMetadata) Toggle() {
+func (cm *Check) Toggle() {
+	if cm.UserDefinedToggle != nil {
+		cm.Enabled = *cm.UserDefinedToggle
+	}
 	if cm.IsDefault {
 		cm.Name = "default_" + cm.Name
 	}
@@ -63,12 +67,12 @@ func (cm *CheckMetadata) Toggle() {
 }
 
 type HttpCheck struct {
-	CheckMetadata
+	Check
 	Url string
 }
 
 type SqlCheck struct {
-	CheckMetadata
+	Check
 	Statement        string
 	ConnectionString string
 }
@@ -85,22 +89,22 @@ type ClusterConfig struct {
 	Name      string `yaml:"name"`
 	Namespace string `yaml:"namespace"`
 	// if this was type check, wouldn't need to set so much
-	Checks []CheckMetadata `yaml:"checks"`
+	Checks []Check `yaml:"checks"`
 }
 
-type DefaultHealthCheckToggles struct {
-	CheckClusterEndpointHealth bool `yaml:"check_cluster_endpoint_health"`
-	CheckWalReplicationHealth  bool `yaml:"check_wal_replication_health"`
-	CheckLastBackupHealth      bool `yaml:"check_last_backup_health"`
-	CheckDbInstanceHealth      bool `yaml:"check_db_instance_health"`
-	CheckRPOHealth             bool `yaml:"check_rpo_health"`
+type DefaultCheckToggles struct {
+	CheckClusterEndpointHealth *bool `yaml:"check_cluster_endpoint_health"`
+	CheckWalReplicationHealth  *bool `yaml:"check_wal_replication_health"`
+	CheckLastBackupHealth      *bool `yaml:"check_last_backup_health"`
+	CheckDbInstanceHealth      *bool `yaml:"check_db_instance_health"`
+	CheckRPOHealth             *bool `yaml:"check_rpo_health"`
 }
 
 type Config struct {
 	Happy struct {
 		Defaults struct {
-			HealthChecks DefaultHealthCheckToggles `yaml:"healthchecks"`
-			Threshold    Threshold                 `yaml:"threshold"`
+			HealthChecks DefaultCheckToggles `yaml:"healthchecks"`
+			Threshold    Threshold           `yaml:"threshold"`
 		} `yaml:"defaults"`
 		Clusters []ClusterConfig `yaml:"clusters"`
 	} `yaml:"happy"`
