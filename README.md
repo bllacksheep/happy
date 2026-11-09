@@ -14,16 +14,19 @@ telnet localhost 5432
 export DB_CONNECTION_URI="postgres://postgres:test_pass@localhost:5432"
 ```
 basic health checks by cluster
+will eventually be custom resource definitions
+crd for Happy, RPOTestScheudle and Check or Test
 ```yaml
 # minimal example
 happy:
   clusters:
     - name: "cluster-0001"
       namespace: "db"
-      backups:
-        test: true
-        namespace: "db"
-      checks:
+      backup_test:
+        enabled: true
+        schedule: "* * * * *"
+        target_namespace: "db"
+      tests:
         - name: database_count
           query: "select count (*) from pg_database"
           expect: 5
@@ -50,9 +53,9 @@ happy:
     - name: "cluster-0001"
       namespace: "db-1"
       use_defaults: true
-      backups:
-        test: true
-        namespace: "db"
+      backup_test:
+        enabled: true
+        target_namespace: "db"
       use_pooler: true
       check_rpo_health: false
       exempt_from:
