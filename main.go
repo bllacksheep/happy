@@ -5,8 +5,8 @@ import (
 	"log/slog"
 )
 
-func (c *Cluster) RegisterDefaultChecks() {
-	// default checks are always enabled unless configured false
+// load the checks into the app state
+func (c *Cluster) RegisterChecks() {
 	defaultChecks := []Poller{
 		&HttpCheck{
 			Name:              "default_wal_replication_check_enabled",
@@ -44,6 +44,8 @@ func (c *Cluster) RegisterDefaultChecks() {
 
 	c.Checks = defaultChecks
 
+
+	// should be small constant
 	for _, check := range c.Checks {
 		check.Toggle()
 	}
@@ -63,7 +65,10 @@ func startHappy() {
 			DefaultCheckToggles: cfg.Happy.Defaults.HealthChecks,
 			DefaultThreshold:    cfg.Happy.Defaults.Threshold,
 		}
-		cluster.RegisterDefaultChecks()
+
+		// cluster.RegisterChecks should build up the []Poller
+		// for all custom and default checks
+		cluster.RegisterChecks()
 
 		go cluster.StartStatusPoller(ch)
 		go cluster.StartChecks()

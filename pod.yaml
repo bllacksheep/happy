@@ -56,9 +56,11 @@ metadata:
 data:
   happy.yaml: | 
     happy:
+      # optional defaults
       defaults:
-        healthchecks:
-          check_cluster_endpoint_health: false
+        cluster_endpoint_health: false
+        # global for all clusters
+        checks: []
         threshold:
           every: "15s"
           rise: 3
@@ -67,15 +69,22 @@ data:
         - name: "cluster-0001"
           namespace: "db"
           checks:
-            - name: postgres_version
-              statement: "select version()"
-              every: "10s"
-              enabled: false
-            - name: database_count
-              statement: "select count (*) from pg_database"
-              every: "5s"
-              rise: 2
-              fall: 5
+            sql:
+              - name: postgres_version
+                statement: "select version()"
+                every: "10s"
+                enabled: false
+              - name: database_count
+                statement: "select count (*) from pg_database"
+                # optional threshold
+                every: "5s"
+                rise: 2
+                fall: 5
+            http:
+              - name: http_test
+                endpoint: "https://"
+                enabled: true
+                expected: "abc"
 ---
 apiVersion: v1
 kind: Pod

@@ -20,50 +20,51 @@ happy:
   clusters:
     - name: "cluster-0001"
       namespace: "db"
+      backups:
+        test: true
+        namespace: "db"
       checks:
-        - name: postgres_version
-          statement: "select version()"
-          enabled: false
         - name: database_count
-          statement: "select count (*) from pg_database"
-          every: "30s"
-          rise: 2
-          fall: 5
+          query: "select count (*) from pg_database"
+          expect: 5
 ```
 mess with defaults
 ```yaml
 # more complete example
 happy:
-  default:
-    healthchecks:
-      check_cluster_endpoint_health: true
-      check_wal_replication_health: true
-      check_last_backup_health: true
-      check_db_instance_health: true
-      check_rpo_health: true
-    threshold:
-      every: "10s"
-      rise: 3
-      fall: 3
+  checks:
+    - name: postgres_version
+      query: "select version()"
+      expect: "some version"
+      enabled: true
+  check_cluster_endpoint: true
+  check_wal_replication: true
+  check_last_backup: true
+  check_db_instance: true
+  check_rpo_health: true
+  threshold:
+    every: "10s"
+    rise: 3
+    fall: 3
   clusters:
     - name: "cluster-0001"
-      namespace: "db"
-      checks:
-        - name: postgres_version
-          statement: "select version()"
-          enabled: false
-        - name: database_count
-          statement: "select count (*) from pg_database"
-          every: "30s"
-          rise: 2
-          fall: 5
-    - name: "cluster-0002"
       namespace: "db-1"
-      use_pooler: false
-      checks: []
-    - name: "cluster-0003"
+      use_defaults: true
+      backups:
+        test: true
+        namespace: "db"
+      use_pooler: true
+      check_rpo_health: false
+      exempt_from:
+        - postgres_version
+      checks:
+        - name: database_count
+          query: "select count (*) from pg_database"
+          expect: 5
+    - name: "cluster-0002"
       namespace: "db-2"
-      use_primary: true
+      use_pooler: false
+      test_backups: false
       use_defaults: false
       checks: []
 

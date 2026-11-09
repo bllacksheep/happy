@@ -95,7 +95,9 @@ custom checks will need mutex on cluster struct
 need to wrap each check in a Check type - will do later
 give check an arbitrary function that executes it's statement?
 */
-func (c *Cluster) StartChecks() {
+
+// register checks needs to register default and custom checks 
+func (c *Cluster) StartciwChecks() {
 
 	db_connection_string := os.Getenv("DB_CONNECTION_URI")
 	if db_connection_string == "" {
