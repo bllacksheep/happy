@@ -9,41 +9,35 @@ import (
 func (c *Cluster) RegisterChecks() {
 	defaultChecks := []Poller{
 		&HttpCheck{
-			Name:              "default_wal_replication_check_enabled",
-			ClusterName:       c.Name,
-			IsDefault:         true,
-			Threshold:         c.DefaultThreshold,
-			Enabled:           true,
-			UserDefinedToggle: c.DefaultCheckToggles.CheckWalReplicationHealth,
+			Name:        "default_wal_replication_check_enabled",
+			ClusterName: c.Name,
+			IsDefault:   true,
+			Threshold:   c.Defaults.SharedDefaultThreshold(),
+			Enabled:     c.Defaults.Enabled(),
 		},
 		&HttpCheck{
-			Name:              "default_backups_check_enabled",
-			ClusterName:       c.Name,
-			IsDefault:         true,
-			Threshold:         c.DefaultThreshold,
-			Enabled:           true,
-			UserDefinedToggle: c.DefaultCheckToggles.CheckLastBackupHealth,
+			Name:        "default_backups_check_enabled",
+			ClusterName: c.Name,
+			IsDefault:   true,
+			Threshold:   c.Defaults.SharedDefaultThreshold(),
+			Enabled:     c.Defaults.Enabled(),
 		},
 		&HttpCheck{
-			Name:              "default_rpo_check_enabled",
-			ClusterName:       c.Name,
-			IsDefault:         true,
-			Threshold:         c.DefaultThreshold,
-			Enabled:           true,
-			UserDefinedToggle: c.DefaultCheckToggles.CheckRPOHealth,
+			Name:        "default_rpo_check_enabled",
+			ClusterName: c.Name,
+			IsDefault:   true,
+			Threshold:   c.Defaults.SharedDefaultThreshold(),
+			Enabled:     c.Defaults.Enabled(),
 		},
 		&HttpCheck{
-			Name:              "default_db_instance_check_enabled",
-			ClusterName:       c.Name,
-			IsDefault:         true,
-			Threshold:         c.DefaultThreshold,
-			Enabled:           true,
-			UserDefinedToggle: c.DefaultCheckToggles.CheckDbInstanceHealth,
+			Name:        "default_db_instance_check_enabled",
+			ClusterName: c.Name,
+			IsDefault:   true,
+			Threshold:   c.Defaults.SharedDefaultThreshold(),
+			Enabled:     c.Defaults.Enabled(),
 		},
 	}
-
 	c.Checks = defaultChecks
-
 
 	// should be small constant
 	for _, check := range c.Checks {
@@ -51,8 +45,38 @@ func (c *Cluster) RegisterChecks() {
 	}
 }
 
+// want shared default config and threshold pointer
+
+type SharedDefaultConfig struct {
+	Checks    []Check
+	Threshold Threshold
+}
+
+type Defaults interface {
+	Enabled() bool
+	SharedDefaultChecks() []Check
+	SharedDefaultThreshold() Threshold
+}
+
+func (sc *SharedDefaultConfig) SharedDefaultChecks() []Check {
+	return sc.Checks
+}
+
+func (sc *SharedDefaultConfig) SharedDefaultThreshold() Threshold {
+	return sc.Threshold
+}
+
+func (sc *SharedDefaultConfig) Enabled() bool {
+	return true
+}
+
 func startHappy() {
 	cfg := validateConfig()
+
+	defaults := &SharedDefaultConfig{
+		cfg.Happy.DefaultConfig.Checks,
+		cfg.Happy.DefaultConfig.Threshold,
+	}
 
 	ch := make(chan *Cluster)
 
@@ -62,8 +86,7 @@ func startHappy() {
 			Name:      clusterConfig.Name,
 			Namespace: clusterConfig.Namespace,
 
-			DefaultCheckToggles: cfg.Happy.Defaults.HealthChecks,
-			DefaultThreshold:    cfg.Happy.Defaults.Threshold,
+			Defaults: defaults,
 		}
 
 		// cluster.RegisterChecks should build up the []Poller

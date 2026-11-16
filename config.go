@@ -85,25 +85,28 @@ func (c *SqlCheck) Poll() bool {
 type ClusterConfig struct {
 	Name      string `yaml:"name"`
 	Namespace string `yaml:"namespace"`
-	// if this was type check, wouldn't need to set so much
+
+	Defaults Defaults
+
 	Checks []Check `yaml:"checks"`
 }
 
-type DefaultCheckToggles struct {
-	CheckClusterEndpointHealth *bool `yaml:"check_cluster_endpoint_health"`
-	CheckWalReplicationHealth  *bool `yaml:"check_wal_replication_health"`
-	CheckLastBackupHealth      *bool `yaml:"check_last_backup_health"`
-	CheckDbInstanceHealth      *bool `yaml:"check_db_instance_health"`
-	CheckRPOHealth             *bool `yaml:"check_rpo_health"`
+// optioanl default global config
+type DefaultConfig struct {
+	CheckClusterEndpointHealth *bool `yaml:"cluster_endpoint_health"`
+	CheckWalReplicationHealth  *bool `yaml:"wal_replication_health"`
+	CheckLastBackupHealth      *bool `yaml:"last_backup_health"`
+	CheckDbInstanceHealth      *bool `yaml:"db_instance_health"`
+	CheckRPOHealth             *bool `yaml:"rpo_health"`
+
+	Checks    []Check   `yaml:"checks"`
+	Threshold Threshold `yaml:"threshold"`
 }
 
 type Config struct {
 	Happy struct {
-		Defaults struct {
-			HealthChecks DefaultCheckToggles `yaml:"healthchecks"`
-			Threshold    Threshold           `yaml:"threshold"`
-		} `yaml:"defaults"`
-		Clusters []ClusterConfig `yaml:"clusters"`
+		DefaultConfig `yaml:"defaults"`
+		Clusters      []ClusterConfig `yaml:"clusters"`
 	} `yaml:"happy"`
 }
 
@@ -130,3 +133,4 @@ func validateConfig() Config {
 	// check required feilds here
 	return happyConfig
 }
+

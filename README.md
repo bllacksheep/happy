@@ -35,7 +35,7 @@ mess with defaults
 ```yaml
 # more complete example
 happy:
-  checks:
+  shared_checks:
     - name: postgres_version
       query: "select version()"
       expect: "some version"
@@ -64,12 +64,6 @@ happy:
         - name: database_count
           query: "select count (*) from pg_database"
           expect: 5
-    - name: "cluster-0002"
-      namespace: "db-2"
-      use_pooler: false
-      test_backups: false
-      use_defaults: false
-      checks: []
 
 # defaults, true values not required
 # use_pooler true     when false, falls back to use_secondary

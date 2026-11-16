@@ -23,8 +23,9 @@ type Cluster struct {
 	Namespace      string
 	CurrentPrimary string `json:"current_primary"`
 
-	DefaultCheckToggles DefaultCheckToggles
-	DefaultThreshold    Threshold
+	Defaults Defaults
+	// DefaultCheckToggles DefaultCheckToggles
+	// DefaultThreshold    Threshold
 
 	Checks []Poller
 
