@@ -74,7 +74,7 @@ func (sc *SharedDefaultConfig) Enabled() bool {
 func main() {
 	happy, err := newHappy()
 	if err != nil {
-		slog.Error("failed to create happy instance", "err", err)
+		slog.Error("failed to create happy instance", "error", err)
 		os.Exit(1)
 	}
 
