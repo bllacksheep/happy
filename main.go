@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"os"
 )
 
 // load the checks into the app state
@@ -70,7 +71,7 @@ func (sc *SharedDefaultConfig) Enabled() bool {
 	return true
 }
 
-func startHappy() {
+func Start() {
 	cfg := validateConfig()
 
 	defaults := &SharedDefaultConfig{
@@ -122,5 +123,9 @@ func startHappy() {
 }
 
 func main() {
-	startHappy()
+	err := Start()
+	if err != nil {
+		slog.Error("main.go", err)
+		os.Exit(1)
+	}
 }
