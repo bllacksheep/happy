@@ -38,14 +38,16 @@ func (c *Check) Toggle() {
 }
 
 type HttpCheck struct {
+	Url         string
+
 	Check
-	Url string
 }
 
 type SqlCheck struct {
-	Check
 	Statement        string
 	ConnectionString string
+
+	Check
 }
 
 func (c *HttpCheck) Poll() bool {

@@ -17,32 +17,6 @@ type Threshold struct {
 	Fall  int           `json:"fall" yaml:"fall"`
 }
 
-// cluster status for n clusters
-type Cluster struct {
-	Name           string
-	Namespace      string
-	CurrentPrimary string `json:"current_primary"`
-
-	Defaults Defaults
-	// DefaultCheckToggles DefaultCheckToggles
-	// DefaultThreshold    Threshold
-
-	Checks []Poller
-
-	// timer that will track recovery time
-	RTO time.Duration `json:"rto"`
-
-	OverallHealthScore float64 `json:"overall_health"`
-	Polled             int     `json:"polled"`
-	Succeeded          int     `json:"succeeded"`
-
-	// status and happy ?
-	Happy bool `json:"happy"`
-
-	Status *ClusterStatus
-}
-
-// needs to go into a cnpg.go or something
 type Condition struct {
 	LastTransitionTime time.Time `json:"lastTransitionTime"`
 	Message            string    `json:"message"`
@@ -52,7 +26,7 @@ type Condition struct {
 }
 
 // generic kube-api-server response
-type ClusterStatus struct {
+type CnpgClusterStatus struct {
 	Status struct {
 		Conditions []Condition `json:"conditions"`
 	} `json:"status"`

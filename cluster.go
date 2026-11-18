@@ -9,6 +9,7 @@ type Cluster struct {
 	ClusterName string
 
 	// http or sql pollers
+	// defaults will either be in here or not at start up
 	Checks []Poller
 
 	// timer that will track recovery time
@@ -21,19 +22,4 @@ type Cluster struct {
 	Happy bool
 
 	Status *CnpgClusterStatus
-}
-
-type Condition struct {
-	LastTransitionTime time.Time `json:"lastTransitionTime"`
-	Message            string    `json:"message"`
-	Reason             string    `json:"reason"`
-	Status             string    `json:"status"`
-	Type               string    `json:"type"`
-}
-
-// generic kube-api-server response
-type CnpgClusterStatus struct {
-	Status struct {
-		Conditions []Condition `json:"conditions"`
-	} `json:"status"`
 }

@@ -6,48 +6,7 @@ import (
 	"os"
 )
 
-// load the checks into the app state
-func (c *Cluster) registerChecks() {
-	defaultChecks := []Poller{
-		&HttpCheck{
-			Name:        "default_wal_replication_check_enabled",
-			ClusterName: c.Name,
-			IsDefault:   true,
-			Threshold:   c.Defaults.SharedDefaultThreshold(),
-			Enabled:     c.Defaults.Enabled(),
-		},
-		&HttpCheck{
-			Name:        "default_backups_check_enabled",
-			ClusterName: c.Name,
-			IsDefault:   true,
-			Threshold:   c.Defaults.SharedDefaultThreshold(),
-			Enabled:     c.Defaults.Enabled(),
-		},
-		&HttpCheck{
-			Name:        "default_rpo_check_enabled",
-			ClusterName: c.Name,
-			IsDefault:   true,
-			Threshold:   c.Defaults.SharedDefaultThreshold(),
-			Enabled:     c.Defaults.Enabled(),
-		},
-		&HttpCheck{
-			Name:        "default_db_instance_check_enabled",
-			ClusterName: c.Name,
-			IsDefault:   true,
-			Threshold:   c.Defaults.SharedDefaultThreshold(),
-			Enabled:     c.Defaults.Enabled(),
-		},
-	}
-	c.Checks = defaultChecks
-
-	// should be small constant
-	for _, check := range c.Checks {
-		check.Toggle()
-	}
-}
-
 // want shared default config and threshold pointer
-
 
 func main() {
 	happy, err := newHappy()
