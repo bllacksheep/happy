@@ -19,32 +19,6 @@ type Poller interface {
 	Poll() bool
 }
 
-type Check struct {
-	Name        string `json:"name" yaml:"name"`
-	ClusterName string
-
-	Slo float64 `json:"slo"`
-
-	Polled   int `json:"polled"`
-	Suceeded int `json:"succeeded"`
-
-	Healthy           bool `json:"healthy"`
-	Enabled           bool `json:"enabled" yaml:"enabled"`
-	UserDefinedToggle *bool
-	IsDefault         bool `json:"is_default"`
-
-	// check type might be defined by http: or sql: yaml parent
-	UsePooler    bool   `json:"use_pooler" yaml:"use_pooler"`
-	UsePrimary   bool   `json:"use_primary" yaml:"use_primary"`
-	UseSecondary bool   `json:"use_secondary" yaml:"use_secondary"`
-	UseInstance  string `json:"use_instance" yaml:"use_instance"`
-
-	Threshold Threshold `json:"threshold" yaml:"threshold"`
-
-	LastFailedAt  time.Time `json:"last_failed_at"`
-	LastCheckedAt time.Time `json:"last_checked_at"`
-}
-
 func (cm *Check) Happy(fn func() bool) {
 	if cm.Enabled {
 		cm.Healthy = fn()

@@ -2,8 +2,6 @@ package main
 
 connecttok8s
 
-validate
-
 newcluster
 
 type Happy struct {}
