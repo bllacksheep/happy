@@ -2,22 +2,21 @@ package main
 
 connecttok8s
 
-newcluster
-
-
-func newCluster(name, ns string) Cluster {
-	return Cluster{
-		Name: name,
-		Namespace: ns,
-	}
-
-}
-
 type Happy struct {
 	Config Config
 }
 
+func newCluster(cfg ClusterConfig, dfg DefaultConfig) Cluster {
+	cluster := Cluster{
+		Name: cfg.Name,
+		Namespace: cfg.Namespace,
+		Defaults: cfg.Defaults.Enabled,
+	}
+	return cluster
+}
+
 func newHappy() (*Happy, error) {
+	//TODO: check here
 	return &Happy{}, nil
 }
 
@@ -31,12 +30,12 @@ func (h *Happy) Start() error {
 		h.Config.Happy.DefaultConfig.Threshold,
 	}
 
+
+
 	ch := make(chan *Cluster)
 
-	// should scale for n clusters
 	for _, clusterConfig := range h.Config.Happy.Clusters {
-		cluster := newCluster(clusterConfig.Name, clusterConfig.Namespace)
-		cluster.Defaults = defaults
+		cluster := newCluster(clusterConfig, defaults)
 		// cluster := Cluster{
 		// 	Name:      clusterConfig.Name,
 		// 	Namespace: clusterConfig.Namespace,

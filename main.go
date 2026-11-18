@@ -54,7 +54,6 @@ type SharedDefaultConfig struct {
 }
 
 type Defaults interface {
-	Enabled() bool
 	SharedDefaultChecks() []Check
 	SharedDefaultThreshold() Threshold
 }
@@ -65,10 +64,6 @@ func (sc *SharedDefaultConfig) SharedDefaultChecks() []Check {
 
 func (sc *SharedDefaultConfig) SharedDefaultThreshold() Threshold {
 	return sc.Threshold
-}
-
-func (sc *SharedDefaultConfig) Enabled() bool {
-	return true
 }
 
 func main() {
