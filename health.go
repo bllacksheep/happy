@@ -96,7 +96,7 @@ need to wrap each check in a Check type - will do later
 give check an arbitrary function that executes it's statement?
 */
 
-// register checks needs to register default and custom checks 
+// register checks needs to register default and custom checks
 func (c *Cluster) StartciwChecks() {
 
 	db_connection_string := os.Getenv("DB_CONNECTION_URI")

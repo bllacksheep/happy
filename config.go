@@ -56,15 +56,6 @@ func (c *SqlCheck) Poll() bool {
 	return true
 }
 
-type ClusterConfig struct {
-	Name      string `yaml:"name"`
-	Namespace string `yaml:"namespace"`
-
-	Defaults Defaults
-
-	Checks []Check `yaml:"checks"`
-}
-
 // optioanl default global config
 type DefaultConfig struct {
 	CheckClusterEndpointHealth *bool `yaml:"cluster_endpoint_health"`
@@ -82,6 +73,28 @@ type Config struct {
 		DefaultConfig `yaml:"defaults"`
 		Clusters      []ClusterConfig `yaml:"clusters"`
 	} `yaml:"happy"`
+}
+
+// custom health check router?
+func (c Check) Happy(name string, fn func(string) bool) bool {
+	return fn(c.Statement)
+}
+
+func (c *Check) Toggle(name string, toggle bool, isdef bool) {
+	c.Name = name
+	c.Enabled = toggle
+	c.IsDefault = isdef
+	slog.Info("happy.go", c.Name, strconv.FormatBool(c.Enabled))
+}
+
+type ClusterConfig struct {
+	Name      string `yaml:"name"`
+	Namespace string `yaml:"namespace"`
+
+	// Defaults Defaults
+	UseDefaults bool `yaml:"use_defaults"`
+
+	Checks []Check `yaml:"checks"`
 }
 
 func (h *Happy) validateConfig() error {

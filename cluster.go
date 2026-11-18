@@ -3,9 +3,10 @@ package main
 import "time"
 
 type Cluster struct {
-	Name      string
-	Primary   string
-	Namespace string
+	Name        string
+	Primary     string
+	Namespace   string
+	ClusterName string
 
 	// http or sql pollers
 	Checks []Poller

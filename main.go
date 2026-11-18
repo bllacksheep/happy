@@ -7,7 +7,7 @@ import (
 )
 
 // load the checks into the app state
-func (c *Cluster) RegisterChecks() {
+func (c *Cluster) registerChecks() {
 	defaultChecks := []Poller{
 		&HttpCheck{
 			Name:        "default_wal_replication_check_enabled",
@@ -48,23 +48,6 @@ func (c *Cluster) RegisterChecks() {
 
 // want shared default config and threshold pointer
 
-type SharedDefaultConfig struct {
-	Checks    []Check
-	Threshold Threshold
-}
-
-type Defaults interface {
-	SharedDefaultChecks() []Check
-	SharedDefaultThreshold() Threshold
-}
-
-func (sc *SharedDefaultConfig) SharedDefaultChecks() []Check {
-	return sc.Checks
-}
-
-func (sc *SharedDefaultConfig) SharedDefaultThreshold() Threshold {
-	return sc.Threshold
-}
 
 func main() {
 	happy, err := newHappy()

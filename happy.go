@@ -1,17 +1,34 @@
 package main
 
-connecttok8s
+import (
+	"fmt"
+	"log/slog"
+	"strconv"
+)
 
 type Happy struct {
 	Config Config
 }
 
-func newCluster(cfg ClusterConfig, dfg DefaultConfig) Cluster {
+// type Health interface {
+// 	Happy(func(string) bool) bool
+// 	Toggle(string, bool)
+// }
+
+func newCluster(cfg ClusterConfig, dfg *SharedDefaultConfig) Cluster {
 	cluster := Cluster{
-		Name: cfg.Name,
+		Name:      cfg.Name,
 		Namespace: cfg.Namespace,
-		Defaults: cfg.Defaults.Enabled,
 	}
+
+
+	if cfg.UseDefaults {
+		cluster.Checks = append(cluster.Checks, dfg.Checks)
+	}
+
+	cluster.registerChecks()
+
+	// go cluster.StartStatusPoller(ch)
 	return cluster
 }
 
@@ -30,8 +47,6 @@ func (h *Happy) Start() error {
 		h.Config.Happy.DefaultConfig.Threshold,
 	}
 
-
-
 	ch := make(chan *Cluster)
 
 	for _, clusterConfig := range h.Config.Happy.Clusters {
@@ -45,9 +60,6 @@ func (h *Happy) Start() error {
 
 		// cluster.RegisterChecks should build up the []Poller
 		// for all custom and default checks
-		cluster.RegisterChecks()
-
-		go cluster.StartStatusPoller(ch)
 		go cluster.StartChecks()
 
 		slog.Info("main.go", cluster.Name, "happy started")
@@ -74,4 +86,3 @@ func (h *Happy) Start() error {
 				currentCluster.Happy, slo))
 	}
 }
-
