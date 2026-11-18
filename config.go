@@ -84,27 +84,23 @@ type Config struct {
 	} `yaml:"happy"`
 }
 
-// return valid config
-func validateConfig() Config {
-	happyConfig := Config{}
-
+func (h *Happy) validateConfig() error {
 	configPath := flag.String("c", "happy.yaml", "config file")
 	flag.Parse()
 	configData, err := os.ReadFile(*configPath)
 
 	if err != nil {
 		slog.Error("main.go", "msg", "couldn't read file", "err", err)
-		os.Exit(1)
+		return err
 	}
 
-	err = yaml.Unmarshal(configData, &happyConfig)
+	err = yaml.Unmarshal(configData, &h.Config)
 	if err != nil {
 		slog.Error("main.go", "msg", "error unmarshalling yaml", "err", err)
-		os.Exit(1)
+		return err
 	}
 
 	slog.Info("main.go", "msg", "validated config")
 	// check required feilds here
-	return happyConfig
+	return nil
 }
-

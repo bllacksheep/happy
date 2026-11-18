@@ -4,30 +4,45 @@ connecttok8s
 
 newcluster
 
-type Happy struct {}
+
+func newCluster(name, ns string) Cluster {
+	return Cluster{
+		Name: name,
+		Namespace: ns,
+	}
+
+}
+
+type Happy struct {
+	Config Config
+}
 
 func newHappy() (*Happy, error) {
-	return &Happy{}
+	return &Happy{}, nil
 }
 
 func (h *Happy) Start() error {
-	cfg := validateConfig()
+	if err := h.validateConfig(); err != nil {
+		return fmt.Errorf("failed to validate config", err)
+	}
 
 	defaults := &SharedDefaultConfig{
-		cfg.Happy.DefaultConfig.Checks,
-		cfg.Happy.DefaultConfig.Threshold,
+		h.Config.Happy.DefaultConfig.Checks,
+		h.Config.Happy.DefaultConfig.Threshold,
 	}
 
 	ch := make(chan *Cluster)
 
 	// should scale for n clusters
-	for _, clusterConfig := range cfg.Happy.Clusters {
-		cluster := Cluster{
-			Name:      clusterConfig.Name,
-			Namespace: clusterConfig.Namespace,
-
-			Defaults: defaults,
-		}
+	for _, clusterConfig := range h.Config.Happy.Clusters {
+		cluster := newCluster(clusterConfig.Name, clusterConfig.Namespace)
+		cluster.Defaults = defaults
+		// cluster := Cluster{
+		// 	Name:      clusterConfig.Name,
+		// 	Namespace: clusterConfig.Namespace,
+		//
+		// 	Defaults: defaults,
+		// }
 
 		// cluster.RegisterChecks should build up the []Poller
 		// for all custom and default checks
@@ -39,7 +54,7 @@ func (h *Happy) Start() error {
 		slog.Info("main.go", cluster.Name, "happy started")
 	}
 
-	happy := make(map[string]*Cluster, len(cfg.Happy.Clusters))
+	happy := make(map[string]*Cluster, len(h.Config.Happy.Clusters))
 
 	slog.Info("main.go", "msg", "happy started")
 
