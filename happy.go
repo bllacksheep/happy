@@ -25,23 +25,25 @@ func (h *Happy) Start() error {
 		h.Config.Happy.DefaultConfig.Threshold,
 	}
 
-	ch := make(chan *Cluster)
-
 	for _, clusterConfig := range h.Config.Happy.Clusters {
-		cluster := newCluster(clusterConfig, defaults)
-		// cluster := Cluster{
-		// 	Name:      clusterConfig.Name,
-		// 	Namespace: clusterConfig.Namespace,
-		//
-		// 	Defaults: defaults,
-		// }
+		cluster, err := newCluster(clusterConfig, defaults)
 
-		// cluster.RegisterChecks should build up the []Poller
-		// for all custom and default checks
-		go cluster.StartChecks()
+		if err != nil {
+			return fmt.Errorf("failed to create cluster", err)
+		}
+
+		// RegsiterCheck to add a check dynamically?
+		cluster.StartChecks()
 
 		slog.Info("main.go", cluster.Name, "happy started")
 	}
+	return nil
+}
+
+
+
+/*
+	ch := make(chan *Cluster)
 
 	happy := make(map[string]*Cluster, len(h.Config.Happy.Clusters))
 
@@ -63,4 +65,4 @@ func (h *Happy) Start() error {
 				currentCluster.Succeeded, currentCluster.Polled,
 				currentCluster.Happy, slo))
 	}
-}
+*/

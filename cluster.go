@@ -34,6 +34,5 @@ func newCluster(cfg ClusterConfig, defaults Defaults) Cluster {
 		cluster.Checks = append(cluster.Checks, defaults.SharedDefaultChecks()...)
 	}
 
-	// go cluster.StartStatusPoller(ch)
 	return cluster
 }

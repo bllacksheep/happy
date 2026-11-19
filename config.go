@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
@@ -99,14 +100,12 @@ func (h *Happy) validateConfig() error {
 	configData, err := os.ReadFile(*configPath)
 
 	if err != nil {
-		slog.Error("main.go", "msg", "couldn't read file", "err", err)
-		return err
+		return fmt.Errorf("couldn't read file", err)
 	}
 
 	err = yaml.Unmarshal(configData, &h.Config)
 	if err != nil {
-		slog.Error("main.go", "msg", "error unmarshalling yaml", "err", err)
-		return err
+		return fmt.Errorf("error unmarhsalling yaml", err)
 	}
 
 	slog.Info("main.go", "msg", "validated config")
