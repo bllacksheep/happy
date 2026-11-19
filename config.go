@@ -9,13 +9,7 @@ import (
 	"time"
 )
 
-type Checker interface {
-	Happy(func() bool)
-	Toggle()
-}
-
 type Poller interface {
-	Checker
 	Poll() bool
 }
 
@@ -38,7 +32,7 @@ func (c *Check) Toggle() {
 }
 
 type HttpCheck struct {
-	Url         string
+	Url string
 
 	Check
 }

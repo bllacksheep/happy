@@ -3,34 +3,12 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"strconv"
 )
 
 type Happy struct {
 	Config Config
 }
 
-// type Health interface {
-// 	Happy(func(string) bool) bool
-// 	Toggle(string, bool)
-// }
-
-func newCluster(cfg ClusterConfig, dfg *SharedDefaultConfig) Cluster {
-	cluster := Cluster{
-		Name:      cfg.Name,
-		Namespace: cfg.Namespace,
-	}
-
-
-	if cfg.UseDefaults {
-		cluster.Checks = append(cluster.Checks, dfg.Checks)
-	}
-
-	cluster.registerChecks()
-
-	// go cluster.StartStatusPoller(ch)
-	return cluster
-}
 
 func newHappy() (*Happy, error) {
 	//TODO: check here

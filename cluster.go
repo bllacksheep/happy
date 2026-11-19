@@ -23,3 +23,17 @@ type Cluster struct {
 
 	Status *CnpgClusterStatus
 }
+
+func newCluster(cfg ClusterConfig, defaults Defaults) Cluster {
+	cluster := Cluster{
+		Name:      cfg.Name,
+		Namespace: cfg.Namespace,
+	}
+	
+	if cfg.UseDefaults {
+		cluster.Checks = append(cluster.Checks, defaults.SharedDefaultChecks()...)
+	}
+
+	// go cluster.StartStatusPoller(ch)
+	return cluster
+}

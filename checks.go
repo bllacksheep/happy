@@ -30,11 +30,11 @@ type SharedDefaultConfig struct {
 }
 
 type Defaults interface {
-	SharedDefaultChecks() []Check
+	SharedDefaultChecks() []Poller
 	SharedDefaultThreshold() Threshold
 }
 
-func (sc *SharedDefaultConfig) SharedDefaultChecks() []Check {
+func (sc *SharedDefaultConfig) SharedDefaultChecks() []Poller {
 	return sc.Checks
 }
 
@@ -42,45 +42,45 @@ func (sc *SharedDefaultConfig) SharedDefaultThreshold() Threshold {
 	return sc.Threshold
 }
 
-// load the checks into the app state
-func (c *Defaults) registerChecks() {
-	defaultChecks := []Poller{
+func defaultCheck(name string, cfg SharedDefaultConfig) []Poller {
+	return []Poller{
 		&HttpCheck{
 			Name:        "default_wal_replication_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
-			Threshold:   c.Defaults.SharedDefaultThreshold(),
+			Threshold:   cfg.Threshold,
 			Enabled:     true,
 		},
 		&HttpCheck{
 			Name:        "default_backups_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
-			Threshold:   c.Defaults.SharedDefaultThreshold(),
+			Threshold:   cfg.Threshold,
 			Enabled:     true,
 		},
 		&HttpCheck{
 			Name:        "default_rpo_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
-			Threshold:   c.Defaults.SharedDefaultThreshold(),
+			Threshold:   cfg.Threshold, 
 			Enabled:     true,
 		},
 		&HttpCheck{
 			Name:        "default_db_instance_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
-			Threshold:   c.Defaults.SharedDefaultThreshold(),
+			Threshold:   cfg.Threshold, 
 			Enabled:     true,
 		},
 	}
-	c.Checks = defaultChecks
-
-	// should be small constant
-	for _, check := range c.Checks {
-		check.Toggle()
-	}
 }
+
+
+// load the checks into the app state
+func (c *Cluster) registerChecks(dfg SharedDefaultConfig) {
+	c.Checks = append(c.Checks, defaultCheck(c.ClusterName, dfg))
+}
+
 startchecks
 
 customchecks
