@@ -25,7 +25,7 @@ type Check struct {
 }
 
 type SharedDefaultConfig struct {
-	Checks    []Check
+	Checks    []Poller
 	Threshold Threshold
 }
 
@@ -35,6 +35,7 @@ type Defaults interface {
 }
 
 func (sc *SharedDefaultConfig) SharedDefaultChecks() []Poller {
+	sc.Checks = defaultCheck(name, )
 	return sc.Checks
 }
 
@@ -42,35 +43,35 @@ func (sc *SharedDefaultConfig) SharedDefaultThreshold() Threshold {
 	return sc.Threshold
 }
 
-func defaultCheck(name string, cfg SharedDefaultConfig) []Poller {
+func defaultCheck(cfg ClusterConfig) []Poller {
 	return []Poller{
 		&HttpCheck{
 			Name:        "default_wal_replication_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   cfg.Threshold,
-			Enabled:     true,
+			Enabled:     cfg.CheckWalReplicationHealth,
 		},
 		&HttpCheck{
 			Name:        "default_backups_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   cfg.Threshold,
-			Enabled:     true,
+			Enabled:     cfg.CheckLastBackupHealth,
 		},
 		&HttpCheck{
 			Name:        "default_rpo_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   cfg.Threshold, 
-			Enabled:     true,
+			Enabled:     cfg.CheckRPOHealth,
 		},
 		&HttpCheck{
 			Name:        "default_db_instance_check_enabled",
 			ClusterName: c.Name,
 			IsDefault:   true,
 			Threshold:   cfg.Threshold, 
-			Enabled:     true,
+			Enabled:     ,
 		},
 	}
 }

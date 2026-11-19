@@ -53,23 +53,21 @@ func (c *SqlCheck) Poll() bool {
 	return true
 }
 
-// optioanl default global config
-type DefaultConfig struct {
+type ClusterConfig struct {
+	Name      string `yaml:"name"`
+	Namespace string `yaml:"namespace"`
+
 	CheckClusterEndpointHealth *bool `yaml:"cluster_endpoint_health"`
 	CheckWalReplicationHealth  *bool `yaml:"wal_replication_health"`
 	CheckLastBackupHealth      *bool `yaml:"last_backup_health"`
 	CheckDbInstanceHealth      *bool `yaml:"db_instance_health"`
 	CheckRPOHealth             *bool `yaml:"rpo_health"`
 
-	Checks    []Check   `yaml:"checks"`
-	Threshold Threshold `yaml:"threshold"`
+	Checks []Check `yaml:"checks"`
 }
 
 type Config struct {
-	Happy struct {
-		DefaultConfig `yaml:"defaults"`
-		Clusters      []ClusterConfig `yaml:"clusters"`
-	} `yaml:"happy"`
+	Clusters      []ClusterConfig `yaml:"clusters"`
 }
 
 // custom health check router?
@@ -82,16 +80,6 @@ func (c *Check) Toggle(name string, toggle bool, isdef bool) {
 	c.Enabled = toggle
 	c.IsDefault = isdef
 	slog.Info("happy.go", c.Name, strconv.FormatBool(c.Enabled))
-}
-
-type ClusterConfig struct {
-	Name      string `yaml:"name"`
-	Namespace string `yaml:"namespace"`
-
-	// Defaults Defaults
-	UseDefaults bool `yaml:"use_defaults"`
-
-	Checks []Check `yaml:"checks"`
 }
 
 func (h *Happy) validateConfig() error {

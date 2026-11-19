@@ -24,15 +24,15 @@ type Cluster struct {
 	Status *CnpgClusterStatus
 }
 
-func newCluster(cfg ClusterConfig, defaults Defaults) Cluster {
+func newCluster(cfg ClusterConfig) Cluster {
 	cluster := Cluster{
 		Name:      cfg.Name,
 		Namespace: cfg.Namespace,
 	}
-	
-	if cfg.UseDefaults {
-		cluster.Checks = append(cluster.Checks, defaults.SharedDefaultChecks()...)
-	}
+
+	defaults := defaultCheck(cfg)
+
+	cluster.Checks = append(cluster.Checks, defaults...)
 
 	return cluster
 }

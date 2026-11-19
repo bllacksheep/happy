@@ -6,41 +6,40 @@ import (
 )
 
 type Happy struct {
-	Config Config
+	Config   Config
+	Clusters []Cluster
+}
+
+func NewHappy() (*Happy, error) {
+	happy := &Happy{}
+
+	if err := happy.validateConfig(); err != nil {
+		return nil, fmt.Errorf("failed to validate config", err)
+	}
+
+	// RegsiterCheck to add a check dynamically?
+	for _, clusterConfig := range happy.Clusters {
+		cluster := newCluster(clusterConfig)
+
+		happy.Clusters = append(happy.Clusters, cluster)
+		slog.Info("cluster.go", cluster.Name, "happy started")
+	}
+
+	return happy, nil
 }
 
 
-func newHappy() (*Happy, error) {
-	//TODO: check here
-	return &Happy{}, nil
+func (h *Happy) initializeAndStartChecks() {
+
 }
 
 func (h *Happy) Start() error {
-	if err := h.validateConfig(); err != nil {
-		return fmt.Errorf("failed to validate config", err)
-	}
 
-	defaults := &SharedDefaultConfig{
-		h.Config.Happy.DefaultConfig.Checks,
-		h.Config.Happy.DefaultConfig.Threshold,
-	}
+	h.initializeAndStartChecks()
 
-	for _, clusterConfig := range h.Config.Happy.Clusters {
-		cluster, err := newCluster(clusterConfig, defaults)
-
-		if err != nil {
-			return fmt.Errorf("failed to create cluster", err)
-		}
-
-		// RegsiterCheck to add a check dynamically?
-		cluster.StartChecks()
-
-		slog.Info("main.go", cluster.Name, "happy started")
-	}
+	// should block here?
 	return nil
 }
-
-
 
 /*
 	ch := make(chan *Cluster)

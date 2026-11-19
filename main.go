@@ -8,7 +8,7 @@ import (
 // want shared default config and threshold pointer
 
 func main() {
-	happy, err := newHappy()
+	happy, err := NewHappy()
 	if err != nil {
 		slog.Error("failed to create happy instance", "error", err)
 		os.Exit(1)
