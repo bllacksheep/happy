@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-// want shared default config and threshold pointer
-
 func main() {
 	happy, err := NewHappy()
 	if err != nil {

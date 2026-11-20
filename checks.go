@@ -1,91 +1,74 @@
 package main
 
+import "time"
 
 type Check struct {
-	Name string `json:"name"`
+	Name        string `json:"name"`
 	ClusterName string `json:"cluster_name"`
 
 	Slo  float64
 	Rise int
 	Fall int
 
-	Polled    int
-	Suceeded  int
+	Polled   int
+	Suceeded int
 
 	Healthy   bool   `json:"healthy"`
 	Enabled   bool   `json:"enabled"`
 	IsDefault bool   `json:"is_default"`
 	Statement string `json:"statement"`
 
-	Every     time.Duration
-	Threshold time.Duration
+	Threshold Threshold
 
 	LastFailedAt  time.Time `json:"last_failed_at"`
 	LastCheckedAt time.Time `json:"last_checked_at"`
 }
 
-type SharedDefaultConfig struct {
-	Checks    []Poller
-	Threshold Threshold
-}
+// defaultChecks returns unique copied slice per cluster config
+// of checks that satisfy the Poller interface with a default threshold
+// call is free to murate this these checks at runtime
+func defaultChecks(cfg ClusterConfig) []Poller {
 
-type Defaults interface {
-	SharedDefaultChecks() []Poller
-	SharedDefaultThreshold() Threshold
-}
+	th := Threshold{
+		Every: time.Second * 5,
+		Rise:  3,
+		Fall:  2,
+	}
 
-func (sc *SharedDefaultConfig) SharedDefaultChecks() []Poller {
-	sc.Checks = defaultCheck(name, )
-	return sc.Checks
-}
-
-func (sc *SharedDefaultConfig) SharedDefaultThreshold() Threshold {
-	return sc.Threshold
-}
-
-func defaultCheck(cfg ClusterConfig) []Poller {
+	// value in interface, can't mutate the config
 	return []Poller{
-		&HttpCheck{
+		HttpCheck{
 			Name:        "default_wal_replication_check_enabled",
-			ClusterName: c.Name,
+			Url:         "",
+			ClusterName: cfg.Name,
 			IsDefault:   true,
-			Threshold:   cfg.Threshold,
+			Threshold:   th,
 			Enabled:     cfg.CheckWalReplicationHealth,
 		},
-		&HttpCheck{
+		HttpCheck{
 			Name:        "default_backups_check_enabled",
-			ClusterName: c.Name,
+			ClusterName: cfg.Name,
 			IsDefault:   true,
-			Threshold:   cfg.Threshold,
+			Threshold:   th,
 			Enabled:     cfg.CheckLastBackupHealth,
 		},
-		&HttpCheck{
+		HttpCheck{
 			Name:        "default_rpo_check_enabled",
-			ClusterName: c.Name,
+			ClusterName: cfg.Name,
 			IsDefault:   true,
-			Threshold:   cfg.Threshold, 
+			Threshold:   th,
 			Enabled:     cfg.CheckRPOHealth,
 		},
-		&HttpCheck{
+		HttpCheck{
 			Name:        "default_db_instance_check_enabled",
-			ClusterName: c.Name,
+			ClusterName: cfg.Name,
 			IsDefault:   true,
-			Threshold:   cfg.Threshold, 
-			Enabled:     ,
+			Threshold:   th,
+			Enabled:     cfg.CheckDbInstanceHealth,
 		},
 	}
 }
 
+// startchecks
 
-// load the checks into the app state
-func (c *Cluster) registerChecks(dfg SharedDefaultConfig) {
-	c.Checks = append(c.Checks, defaultCheck(c.ClusterName, dfg))
-}
-
-startchecks
-
-customchecks
-
-defaultchecks
-
-registerchecks
+// customchecks

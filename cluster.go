@@ -30,7 +30,7 @@ func newCluster(cfg ClusterConfig) Cluster {
 		Namespace: cfg.Namespace,
 	}
 
-	defaults := defaultCheck(cfg)
+	defaults := defaultChecks(cfg)
 
 	cluster.Checks = append(cluster.Checks, defaults...)
 
