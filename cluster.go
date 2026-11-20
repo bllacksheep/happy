@@ -1,12 +1,17 @@
 package main
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
 
 type Cluster struct {
 	Name        string
 	Primary     string
 	Namespace   string
 	ClusterName string
+
+	Endpoint    *http.Request
 
 	// http or sql pollers
 	// defaults will either be in here or not at start up
@@ -24,15 +29,24 @@ type Cluster struct {
 	Status *CnpgClusterStatus
 }
 
-func newCluster(cfg ClusterConfig) Cluster {
-	cluster := Cluster{
+func newCluster(cfg ClusterConfig) (*Cluster, error) {
+
+	cluster := &Cluster{
 		Name:      cfg.Name,
 		Namespace: cfg.Namespace,
 	}
 
-	defaults := defaultChecks(cfg)
+	endpoint, err := newCnpgClusterRequest(cluster.Name, cluster.Namespace)
+
+	if err != nil {
+		return nil, err
+	}
+
+	cluster.Endpoint = endpoint
+
+	defaults := defaultChecks(cfg, endpoint)
 
 	cluster.Checks = append(cluster.Checks, defaults...)
 
-	return cluster
+	return cluster, nil
 }

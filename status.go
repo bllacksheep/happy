@@ -50,25 +50,24 @@ func (c *Cluster) getClusterStatus(client *http.Client, r *http.Request) {
 	c.Status = &cs
 }
 
-func newCnpgClusterRequest(name, ns string) *http.Request {
+func newCnpgClusterRequest(name, ns string) (*http.Request, error) {
 	tokenData, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	if err != nil {
-		slog.Error("status.go", name, err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to read k8s token", err)
 	}
+
 	endpoint_uri := "apis/postgresql.cnpg.io/v1/namespaces/" + ns + "/clusters/" + name
 	endpoint := fmt.Sprintf("https://%s:%s/%s", os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT"), endpoint_uri)
 	slog.Info("status.go", name, "endpoint "+endpoint)
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
-		slog.Error("status.go", name, err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to build request", err)
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenData))
 
-	return req
+	return req, nil
 }
 
 func newTlsClient(name string) *http.Client {

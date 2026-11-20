@@ -7,31 +7,6 @@ import (
 	"os"
 )
 
-type Poller interface {
-	Poll() bool
-}
-
-type HttpCheck struct {
-	Url string
-
-	Check
-}
-
-type SqlCheck struct {
-	Statement        string
-	ConnectionString string
-
-	Check
-}
-
-func (c HttpCheck) Poll() bool {
-	return true
-}
-
-func (c SqlCheck) Poll() bool {
-	return true
-}
-
 type ClusterConfig struct {
 	Name      string `yaml:"name"`
 	Namespace string `yaml:"namespace"`

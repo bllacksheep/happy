@@ -13,6 +13,7 @@ type Happy struct {
 
 func NewHappy() (*Happy, error) {
 	happy := &Happy{}
+
 	if err := happy.validateConfig(); err != nil {
 		return nil, fmt.Errorf("failed to validate config", err)
 	}
@@ -21,9 +22,13 @@ func NewHappy() (*Happy, error) {
 
 	// RegsiterCheck to add a check dynamically?
 	for _, clusterConfig := range happy.config.Clusters {
-		cluster := newCluster(clusterConfig)
+		cluster, err := newCluster(clusterConfig)
 
-		happy.clusters[cluster.Name] = &cluster
+		if err != nil {
+			return nil, err
+		}
+
+		happy.clusters[cluster.Name] = cluster
 		slog.Info("cluster.go", cluster.Name, "happy started")
 	}
 
@@ -40,6 +45,7 @@ func (h *Happy) initializeAndStartChecks() error {
 
 func (h *Happy) ready() {
 	for check := range h.pollPending {
+
 		check.Poll()
 	}
 	//		slog.Info("main.go", currentCluster.Name, *happyClusters[cluster.Name].Status)
