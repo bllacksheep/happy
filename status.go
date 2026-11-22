@@ -92,21 +92,6 @@ func newTlsClient(name string) *http.Client {
 	}
 }
 
-func (c *Cluster) StartStatusPoller(ch chan *Cluster) {
+func (c *Cluster) Poll(ch chan *Cluster) error {
 
-	// needs to be on Check
-
-	client := newTlsClient(c.Name)
-	slog.Info("status.go", c.Name, "created new tls client")
-	req := newCnpgClusterRequest(c.Name, c.Namespace)
-
-	ticker := time.NewTicker(c.DefaultThreshold.Every)
-
-	slog.Info("status.go", c.Name, "started watcher")
-	for range ticker.C {
-		// view refresh
-		c.getClusterStatus(client, req)
-		ch <- c
-		slog.Info("status.go", c.Name, "wait for next poll")
-	}
 }

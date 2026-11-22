@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"encoding/json"
+	"net/http"
+	"time"
+)
 
 type Check struct {
 	Name string `json:"name"`
@@ -26,7 +30,7 @@ type Check struct {
 }
 
 type Poller interface {
-	Poll() error
+	Start() error
 	MetadataResolver
 }
 
@@ -57,13 +61,40 @@ type SqlCheck struct {
 	Check
 }
 
-func (c HttpCheck) Poll() error {
+func (c HttpCheck) Start(req *http.Request) error {
+	client := newTlsClient(c.Name)
+
+	ticker := time.NewTicker(c.Threshold.Every)
+
+	for range ticker.C {
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+
+		var cs CnpgClusterStatus
+		err = json.NewDecoder(resp.Body).Decode(&cs)
+		if err != nil {
+			return err
+		}
+
+		resp.Body.Close()
+		c.Status = &cs
+
+		//
+		c.getClusterStatus(client, req)
+		ch <- c
+		slog.Info("status.go", c.Name, "wait for next poll")
+	}
 	return nil
 }
 
-func (c SqlCheck) Poll() error {
+func (c SqlCheck) StartPolling() error {
+	println("sql poll")
 	return nil
 }
+
+// this needs to work for all checks maybe a factor or something
 
 // defaultChecks returns unique copied slice per cluster config
 // of checks that satisfy the Poller interface with a default threshold
